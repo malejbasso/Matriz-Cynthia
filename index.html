@@ -650,9 +650,9 @@ function paintStep() {
   $('#stepbox').innerHTML = '<section class="card">' + body + `
     <div class="foot-btns">
       <button class="btn" data-act="prev" ${prev ? '' : 'disabled'}>← Anterior</button>
-      ${next ? '<button class="btn primary" data-act="next">Siguiente →</button>' : '<button class="btn primary" data-act="toRes">Ver matriz y descargas</button>'}
+      ${next ? '<button class="btn primary" data-act="next">Siguiente →</button>' : '<button class="btn primary" data-act="toRes">Terminar y ver matriz</button>'}
     </div></section>`;
-  paintNav();
+  paintNav(); paintBar();
 }
 function gateHtml(ev, c, g) {
   const v = ev.gates[g], n = esc(firstName(c));
@@ -674,6 +674,7 @@ function gateHtml(ev, c, g) {
     <p class="muted small" style="margin-top:12px">Con «supera la capacidad» se omiten C1 a C17 y esas celdas quedan en blanco.</p>`;
 }
 function funHtml(ev, c, f) {
+  if (!ev.ans[f.id]) { ev.ans[f.id] = 'si'; ev.updated = Date.now(); persist(); }
   const a = ev.ans[f.id], stageLbl = f.kind === 'A' ? 'Nivel 1' : f.kind === 'B' ? 'Nivel 2' : 'Niveles 3 a 7 · ' + groupOf(f.n);
   const cats = CAT_ORDER.filter(k => f.cats[k]);
   const catsHtml = cats.map(cat => {
@@ -918,7 +919,7 @@ document.addEventListener('change', ev => {
   const E = db.evals.find(x => x.id === ui.evalId); if (!E || ui.view !== 'wiz') return;
   if (t.matches('[data-yn]')) { E.ans[ui.step] = t.value; $('#behs').hidden = t.value !== 'si'; $('#ynHint').hidden = t.value !== 'no'; }
   else if (t.matches('[data-b]')) { E.beh[t.dataset.b] = +t.value; }
-  else if (t.matches('[data-g]')) { E.gates[t.dataset.g] = t.value; }
+  else if (t.matches('[data-g]')) { E.gates[t.dataset.g] = t.value; E.updated = Date.now(); persist(); return paintStep(); }
   else if (t.id === 'evDate') { E.date = t.value || today(); }
   else if (t.id === 'evWho') { E.evaluator = t.value.trim(); db.evaluator = E.evaluator; }
   else return;
