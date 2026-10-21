@@ -32,7 +32,7 @@
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;margin:0}
-.wrap{max-width:1200px;margin:0 auto;padding-block:22px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1200px;margin:0 auto;padding-block:22px 96px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
 h1{font-size:clamp(1.6rem,3.2vw,2.2rem);line-height:1.1}
 h2{font-size:1.45rem;line-height:1.2}
@@ -64,6 +64,9 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:.88rem;font-weight:
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 .clist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .citem{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 16px;align-items:center}
+.crow{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.crow .citem{flex:1 1 260px;width:auto}
+.crow .row-actions{align-items:center}
 .citem:hover{border-color:var(--accent)}
 .citem .nm{font-family:var(--f-display);font-weight:600;font-size:1.15rem}
 .chip{display:inline-block;padding:3px 10px;border-radius:99px;background:var(--surface2);font-size:.8rem;font-weight:600;color:var(--muted)}
@@ -158,18 +161,19 @@ details.cm textarea{margin-top:8px}
 .legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:6px 0 14px}
 .legend span{display:inline-flex;align-items:center;gap:8px;font-size:.9rem}
 .legend i{width:20px;height:20px;border:1px solid var(--m-line);border-radius:3px;display:inline-block}
-.site-foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:.9rem;line-height:1.6}
+.site-foot{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:.85rem;line-height:1.35;padding:7px 16px calc(7px + env(safe-area-inset-bottom,0px))}
+.wrap{padding-bottom:96px!important}
 /* Modal y aviso */
 #modal{position:fixed;inset:0;background:rgba(10,20,22,.55);display:grid;place-items:center;padding:20px;z-index:50}
 #modal[hidden],#toast[hidden]{display:none}
 #modal .box{background:var(--surface);border-radius:14px;padding:22px;max-width:480px;width:100%;display:grid;gap:16px;border:1px solid var(--line)}
 #modal .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(20px,env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:9px;font-size:.92rem;z-index:60;max-width:min(92vw,520px)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:72px;background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:9px;font-size:.92rem;z-index:60;max-width:min(92vw,520px)}
 @media (prefers-reduced-motion:no-preference){.card,.citem{transition:border-color .15s}}
 </style>
 
 <div class="wrap"><div id="app"></div>
-<footer class="site-foot"><b>De:</b> Negrito<br><b>Para:</b> Monita</footer></div>
+<footer class="site-foot"><b>De:</b> Negrito &nbsp;·&nbsp; <b>Para:</b> Monita</footer></div>
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <div id="modal" hidden></div>
 
@@ -250,15 +254,16 @@ async function attachFolder(interactive) {
   }
   fileSt = 'ok'; persist(); return true;
 }
-async function connectFolder() {
+async function connectFolder(forcePick) {
+  const prev = dirH, prevSt = fileSt;
   try {
-    let h = dirH;
+    let h = forcePick ? null : dirH;
     if (h) { const p = await h.requestPermission({ mode: 'readwrite' }); if (p !== 'granted') h = null; }
     if (!h) h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'matrices' });
     dirH = h;
     if (await attachFolder(true)) { await idbSet('dir', h); toast('Guardando en la carpeta «' + h.name + '» → ' + FILE_NAME); }
-    else { dirH = null; fileSt = 'need'; }
-  } catch (e) { if (!(e && e.name === 'AbortError')) { fileSt = 'need'; toast('No se pudo acceder a la carpeta: ' + (e && e.message || e)); } }
+    else { dirH = prev; fileSt = prevSt; }
+  } catch (e) { dirH = prev; fileSt = prevSt; if (!(e && e.name === 'AbortError')) { toast('No se pudo acceder a la carpeta: ' + (e && e.message || e)); } }
   render();
 }
 async function initFolder() {
@@ -277,7 +282,7 @@ function folderBannerHtml() {
   if (fileSt === 'unsupported') return '<div class="banner err"><span><b>Este navegador no puede guardar en una carpeta.</b> Abre el archivo HTML desde tu equipo con Chrome o Edge para guardar en matrices.json.</span></div>';
   if (fileSt === 'err') return '<div class="banner err"><span><b>No se pudo escribir ' + FILE_NAME + '.</b> Los cambios siguen en el navegador; vuelve a conectar la carpeta.</span><button class="btn sm" data-act="connect">Conectar carpeta</button></div>';
   if (fileSt === 'need') return '<div class="banner"><span><b>Conecta la carpeta donde está este HTML</b> para guardar todo en <b>' + FILE_NAME + '</b>. Se pide una vez por sesión (' + (dirH ? 'ya la elegiste antes: solo debes permitir el acceso' : 'elige la carpeta del archivo') + ').</span><button class="btn sm primary" data-act="connect">' + (dirH ? 'Permitir acceso' : 'Elegir carpeta') + '</button></div>';
-  return '<p class="muted small" style="margin-bottom:14px">Guardando automáticamente en la carpeta «' + esc(dirH.name) + '» → <b>' + FILE_NAME + '</b>. <button class="btn sm ghost" data-act="connect" style="padding:2px 8px">Cambiar carpeta</button></p>';
+  return '<p class="muted small" style="margin-bottom:14px">Guardando automáticamente en la carpeta «' + esc(dirH.name) + '» → <b>' + FILE_NAME + '</b>. <button class="btn sm ghost" data-act="changeFolder" style="padding:2px 8px">Cambiar carpeta</button></p>';
 }
 
 /* ============ Instrumento: niveles, funciones y conductas ============ */
@@ -536,11 +541,11 @@ function paintChildList() {
   }
   box.innerHTML = '<ul class="clist">' + list.map(c => {
     const evs = evalsOf(c.id), last = evs[0], p = last ? progress(last) : null;
-    return `<li><button class="citem" data-child="${c.id}">
+    return `<li class="crow"><button class="citem" data-child="${c.id}">
       <span class="nm">${esc(c.name)}</span>
       <span>${last ? (p.pct === 100 ? '<span class="chip ok">Última evaluación completa</span>' : '<span class="chip">Última al ' + p.pct + '%</span>') : '<span class="chip">Sin evaluaciones</span>'}</span>
       <span class="muted small">${[c.dx, evs.length + (evs.length === 1 ? ' evaluación' : ' evaluaciones'), last ? 'última: ' + fmtDate(last.date) : ''].filter(Boolean).map(esc).join(' · ')}</span>
-    </button></li>`; }).join('') + '</ul>';
+    </button><div class="row-actions"><button class="btn sm" data-act="editRow" data-cid="${c.id}">Editar</button><button class="btn sm danger" data-act="delChild" data-cid="${c.id}">Eliminar</button></div></li>`; }).join('') + '</ul>';
 }
 function showChildForm(c) {
   const slot = $('#formSlot');
@@ -550,7 +555,7 @@ function showChildForm(c) {
       <label class="f">Nombre completo<input type="text" id="cfName" required value="${esc(c ? c.name : '')}"></label>
       <label class="f">Diagnóstico<input type="text" id="cfDx" value="${esc(c ? c.dx : '')}"></label>
     </div>
-    <div class="foot-btns" style="margin-top:16px"><span>${c ? '<button type="button" class="btn danger" data-act="delChild">Eliminar niño o niña</button>' : ''}</span>
+    <div class="foot-btns" style="margin-top:16px"><span>${c ? '<button type="button" class="btn danger" data-act="delChild" data-cid="' + c.id + '">Eliminar niño o niña</button>' : ''}</span>
       <span class="row-actions"><button type="button" class="btn" data-act="cancelForm">Cancelar</button><button class="btn primary" type="submit">Guardar</button></span></div></form>`;
   $('#cfName').focus();
   $('#cform').onsubmit = e => {
@@ -572,6 +577,7 @@ function renderChild() {
     <div><p class="eyebrow">${esc(c.dx ? 'Diagnóstico: ' + c.dx : 'Ficha')}</p><h1>${esc(c.name)}</h1></div>
     <div class="head-actions">
       <button class="btn" data-act="editChild">Editar datos</button>
+      <button class="btn danger" data-act="delChild" data-cid="${c.id}">Eliminar</button>
       <button class="btn" data-act="newFromLast" ${evs.length ? '' : 'disabled'}>Nueva a partir de la última</button>
       <button class="btn primary" data-act="newEval">Nueva evaluación</button>
     </div>
@@ -881,7 +887,8 @@ document.addEventListener('click', async ev => {
     case 'newChild': ui.formFor = 'new'; return showChildForm(null);
     case 'editChild': ui.formFor = 'edit'; return showChildForm(childOf(ui.childId));
     case 'cancelForm': ui.formFor = null; return render();
-    case 'delChild': { const c = childOf(ui.childId), n = evalsOf(c.id).length; if (await ask('¿Eliminar a <b>' + esc(c.name) + '</b> y sus ' + n + ' evaluaciones? No se puede deshacer.', 'Sí, eliminar', true)) { db.evals = db.evals.filter(x => x.childId !== c.id); db.children = db.children.filter(x => x.id !== c.id); persist(); toast('Eliminado'); go({ view: 'home', formFor: null }); } return; }
+    case 'editRow': { ui.formFor = null; const c = childOf(b.dataset.cid); if (!c) return; showChildForm(c); $('#formSlot').scrollIntoView({ behavior: 'smooth' }); return; }
+    case 'delChild': { const c = childOf(b.dataset.cid || ui.childId); if (!c) return; const n = evalsOf(c.id).length; if (await ask('¿Eliminar a <b>' + esc(c.name) + '</b> y sus ' + n + ' evaluaciones? No se puede deshacer.', 'Sí, eliminar', true)) { db.evals = db.evals.filter(x => x.childId !== c.id); db.children = db.children.filter(x => x.id !== c.id); persist(); toast('Eliminado'); go({ view: 'home', formFor: null }); } return; }
     case 'newEval': { const n = newEval(ui.childId); return go({ view: 'wiz', evalId: n.id, step: null }); }
     case 'newFromLast': { const l = evalsOf(ui.childId)[0]; if (!l) return; const n = newEval(ui.childId, l); toast('Nueva evaluación con las respuestas de la última'); return go({ view: 'wiz', evalId: n.id, step: null }); }
     case 'fromEval': { const n = newEval(ui.childId, e()); toast('Nueva evaluación con las respuestas de la elegida'); return go({ view: 'wiz', evalId: n.id, step: null }); }
@@ -897,7 +904,8 @@ document.addEventListener('click', async ev => {
       try { if (b.dataset.act === 'pdfM') await saveFile('Matriz_' + slug(c.name) + '_' + E.date + '.pdf', await makeMatrixPdf(E, c)); else { if (!window.Chart) throw new Error('Gráficos no disponibles'); await saveFile('Dashboard_' + slug(c.name) + '_' + E.date + '.pdf', await makeDashPdf(E, c)); } }
       catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); }
       b.disabled = false; b.textContent = old; return; }
-    case 'connect': return connectFolder();
+    case 'connect': return connectFolder(false);
+    case 'changeFolder': return connectFolder(true);
     case 'backup': return doBackup();
     case 'import': return $('#impFile').click();
     case 'xlsx': { if (!window.XLSX) return toast('No se cargó la librería de Excel. Revisa tu conexión.'); if (!db.evals.length) return toast('Aún no hay evaluaciones para exportar.'); return void saveFile('Evaluaciones_matriz_' + today() + '.xlsx', xlsxData()); }
