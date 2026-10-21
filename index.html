@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Mis matrices de comunicación</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Concepto: una mesa de trabajo clínica y tranquila. Fondo verde-gris, acento verde azulado profundo.
+   Los colores de la matriz (amarillo, naranja, gris) son los del instrumento original y no cambian con el tema. */
+:root{
+  --bg:#f3f6f5; --surface:#ffffff; --surface2:#e8efee; --ink:#14262a; --muted:#566a6e; --line:#d1dbda;
+  --accent:#0c6670; --accent-ink:#ffffff; --accent-soft:#d8eeee; --danger:#b3261e; --danger-soft:#fbe4e2;
+  --warn-bg:#fff2d1; --warn-ink:#5a4300; --ok:#1f7a3f;
+  --m-none:#ffffff; --m-emerg:#fde37f; --m-dom:#fba97d; --m-sup:#cfcfcf; --m-head:#707777; --m-ink:#1a1a1a; --m-line:#6b7474;
+  --f-display:'Bricolage Grotesque',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-body:'Source Sans 3',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1718; --surface:#172326; --surface2:#1f2f32; --ink:#e5eeee; --muted:#9db0b2; --line:#2b3d40;
+    --accent:#5cc6cb; --accent-ink:#04282b; --accent-soft:#133a3d; --danger:#ff8a80; --danger-soft:#3b1f1d;
+    --warn-bg:#3b3012; --warn-ink:#f3dc9a; --ok:#6fd08f; --m-none:#172326; --m-head:#4a5557; --m-line:#8b9697;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1718; --surface:#172326; --surface2:#1f2f32; --ink:#e5eeee; --muted:#9db0b2; --line:#2b3d40;
+  --accent:#5cc6cb; --accent-ink:#04282b; --accent-soft:#133a3d; --danger:#ff8a80; --danger-soft:#3b1f1d;
+  --warn-bg:#3b3012; --warn-ink:#f3dc9a; --ok:#6fd08f; --m-none:#172326; --m-head:#4a5557; --m-line:#8b9697;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;margin:0}
+.wrap{max-width:1200px;margin:0 auto;padding-block:22px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1{font-size:clamp(1.6rem,3.2vw,2.2rem);line-height:1.1}
+h2{font-size:1.45rem;line-height:1.2}
+h3{font-size:1.05rem}
+p{margin:0}
+.eyebrow{font-size:.78rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600;margin-bottom:4px}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600;font-size:.95rem;line-height:1.2;text-decoration:none}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn.sm{padding:6px 11px;font-size:.85rem}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.head{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-end;margin-bottom:20px}
+.head-actions{display:flex;flex-wrap:wrap;gap:8px}
+.banner{background:var(--warn-bg);color:var(--warn-ink);border-radius:10px;padding:12px 16px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.banner.err{background:var(--danger-soft);color:var(--danger)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.tool{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.tool input[type=search]{flex:1 1 240px;min-width:0}
+input[type=text],input[type=search],input[type=date],textarea,select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%}
+textarea{resize:vertical;min-height:64px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:.88rem;font-weight:600;color:var(--muted);min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.clist{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.citem{width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 18px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 16px;align-items:center}
+.citem:hover{border-color:var(--accent)}
+.citem .nm{font-family:var(--f-display);font-weight:600;font-size:1.15rem}
+.chip{display:inline-block;padding:3px 10px;border-radius:99px;background:var(--surface2);font-size:.8rem;font-weight:600;color:var(--muted)}
+.chip.ok{background:var(--accent-soft);color:var(--accent)}
+.empty{border:1.5px dashed var(--line);border-radius:12px;padding:36px 20px;text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-family:var(--f-display);font-size:1.2rem;margin-bottom:6px}
+.crumb{margin-bottom:12px}
+.row-actions{display:flex;flex-wrap:wrap;gap:6px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table.ev{border-collapse:collapse;width:100%;min-width:760px}
+table.ev th{font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+table.ev td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.ev tr:last-child td{border-bottom:0}
+.bar{height:8px;border-radius:9px;background:var(--surface2);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;background:var(--accent)}
+/* Asistente */
+.wz-head{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:end;margin-bottom:18px}
+.wz-head .f{flex:0 1 190px}
+.wz-prog{flex:1 1 220px;display:grid;gap:5px;min-width:180px}
+.saved{font-size:.82rem;color:var(--ok);min-width:110px}
+.saved.bad{color:var(--danger);font-weight:600}
+.wiz{display:grid;grid-template-columns:268px minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.wiz{grid-template-columns:minmax(0,1fr)}}
+.nav{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 8px}
+.nav summary{cursor:pointer;font-weight:700;padding:8px;font-family:var(--f-display)}
+@media (min-width:901px){.nav{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
+.nav .stg{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:10px 8px 3px;font-weight:700}
+.nav button{display:flex;gap:9px;width:100%;text-align:left;background:none;border:0;border-radius:7px;padding:6px 8px;cursor:pointer;font-size:.9rem;align-items:center}
+.nav button:hover{background:var(--surface2)}
+.nav button.cur{background:var(--accent-soft);font-weight:700}
+.nav .dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--line);flex:none}
+.nav .dot.done{background:var(--accent);border-color:var(--accent)}
+.nav .dot.no{background:var(--m-sup);border-color:var(--m-sup)}
+.step-top{display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.code{font-family:var(--f-display);font-weight:700;background:var(--accent);color:var(--accent-ink);border-radius:7px;padding:2px 10px;font-size:.95rem}
+.q{font-size:1.08rem;margin:10px 0 16px;max-width:70ch}
+.yn{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.yn label{position:relative;cursor:pointer}
+.yn input{position:absolute;opacity:0;inset:0}
+.yn span{display:inline-block;min-width:92px;text-align:center;padding:10px 20px;border:1.5px solid var(--line);border-radius:9px;font-weight:700;background:var(--surface)}
+.yn input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.yn input:focus-visible + span{outline:2px solid var(--accent);outline-offset:2px}
+.behs{margin-top:22px;display:grid;gap:18px}
+.sub{font-family:var(--f-display);font-size:1.12rem;margin-bottom:-4px}
+fieldset.cat{border:1px solid var(--line);border-radius:10px;padding:0;margin:0;min-width:0;overflow:hidden}
+fieldset.cat legend{display:block;width:100%;padding:0;float:none}
+.cat-h{background:var(--surface2);padding:8px 14px;font-weight:700;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cat-h small{font-weight:600;color:var(--muted)}
+.beh{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 18px;align-items:center;padding:11px 14px;border-top:1px solid var(--line)}
+fieldset.cat legend + .beh{border-top:0}
+.bl{min-width:0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg label{position:relative;cursor:pointer;display:block}
+.seg input{position:absolute;opacity:0;inset:0}
+.seg span{display:block;padding:7px 12px;font-size:.86rem;border-left:1px solid var(--line);white-space:nowrap}
+.seg label:first-child span{border-left:0}
+.seg input:checked + span{font-weight:700}
+.seg .s0 input:checked + span{background:var(--surface2)}
+.seg .s1 input:checked + span{background:var(--m-emerg);color:var(--m-ink)}
+.seg .s2 input:checked + span{background:var(--m-dom);color:var(--m-ink)}
+.seg input:focus-visible + span{outline:2px solid var(--accent);outline-offset:-2px}
+@media (max-width:640px){.beh{grid-template-columns:minmax(0,1fr)}.seg{display:flex}.seg label{flex:1}.seg span{padding:9px 4px;text-align:center;white-space:normal;font-size:.8rem}}
+details.cm{padding:8px 14px 12px;border-top:1px solid var(--line)}
+details.cm summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.9rem}
+details.cm textarea{margin-top:8px}
+.foot-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;margin-top:26px}
+.gate-opts{display:grid;gap:10px;margin-top:16px}
+.gate-opts label{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;background:var(--surface)}
+.gate-opts label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.gate-opts input{margin-top:4px;accent-color:var(--accent)}
+.gate-box{background:var(--surface2);border-radius:10px;padding:14px 18px;margin-top:12px}
+.gate-box ul{margin:8px 0 0;padding-left:20px}
+/* Resultado */
+.res-actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface);border-left:8px solid var(--line)}
+.kpi b{display:block;font-family:var(--f-display);font-size:1.7rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:.85rem;color:var(--muted)}
+.kpi.k1{border-left-color:var(--m-emerg)}.kpi.k2{border-left-color:var(--m-dom)}.kpi.k3{border-left-color:var(--m-sup)}
+.mxscroll{overflow-x:auto;padding-bottom:8px}
+.mx{display:grid;grid-template-columns:150px repeat(17,minmax(50px,1fr));gap:4px;min-width:1060px}
+.mx .lv{grid-column:1;background:var(--m-head);color:#fff;border-radius:3px;padding:6px 9px;font-size:.72rem;display:flex;flex-direction:column;justify-content:center}
+.mx .lv b{font-size:.86rem}
+.mx .cell{border:1px solid var(--m-line);border-radius:2px;padding:4px 3px;font-size:.66rem;line-height:1.15;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:78px;cursor:pointer}
+.mx .cell b{font-size:.8rem}
+.mx .cell{overflow-wrap:anywhere;hyphens:auto}
+.mx .grp{font-size:.7rem!important;background:var(--m-head);color:#fff;font-weight:600;text-align:center;padding:8px 4px;border-radius:2px;font-size:.85rem}
+.st0{background:var(--m-none);color:var(--ink)}
+.st1{background:var(--m-emerg);color:var(--m-ink)}
+.st2{background:var(--m-dom);color:var(--m-ink)}
+.st3{background:var(--m-sup);color:var(--m-ink)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:6px 0 14px}
+.legend span{display:inline-flex;align-items:center;gap:8px;font-size:.9rem}
+.legend i{width:20px;height:20px;border:1px solid var(--m-line);border-radius:3px;display:inline-block}
+.site-foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:.9rem;line-height:1.6}
+/* Modal y aviso */
+#modal{position:fixed;inset:0;background:rgba(10,20,22,.55);display:grid;place-items:center;padding:20px;z-index:50}
+#modal[hidden],#toast[hidden]{display:none}
+#modal .box{background:var(--surface);border-radius:14px;padding:22px;max-width:480px;width:100%;display:grid;gap:16px;border:1px solid var(--line)}
+#modal .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:max(20px,env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:9px;font-size:.92rem;z-index:60;max-width:min(92vw,520px)}
+@media (prefers-reduced-motion:no-preference){.card,.citem{transition:border-color .15s}}
+</style>
+
+<div class="wrap"><div id="app"></div>
+<footer class="site-foot"><b>De:</b> Negrito<br><b>Para:</b> Monita</footer></div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<div id="modal" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+'use strict';
+/* ============ Utilidades ============ */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
+const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+const fmtDate = iso => { if (!iso) return '—'; const [y,m,d] = iso.split('-'); return d + '/' + m + '/' + y; };
+const slug = s => String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'').slice(0,40) || 'nino';
+function ageText(dob, at) {
+  if (!dob) return '';
+  const a = new Date(dob + 'T00:00:00'), b = new Date((at || today()) + 'T00:00:00');
+  let m = (b.getFullYear() - a.getFullYear()) * 12 + b.getMonth() - a.getMonth();
+  if (b.getDate() < a.getDate()) m--;
+  if (m < 0) return '';
+  const y = Math.floor(m / 12), r = m % 12;
+  return (y ? y + (y === 1 ? ' año' : ' años') : '') + (y && r ? ' ' : '') + (r || !y ? r + (r === 1 ? ' mes' : ' meses') : '');
+}
+
+/* ============ Almacenamiento local (con respaldo exportable) ============ */
+const LS_KEY = 'matrices-comunicacion.v1';
+let storageOk = true;
+function blankDb() { return { v: 1, children: [], evals: [], lastBackup: 0, evaluator: '' }; }
+function loadDb() {
+  try { const r = localStorage.getItem(LS_KEY); if (r) { const d = JSON.parse(r); if (d && Array.isArray(d.children) && Array.isArray(d.evals)) return Object.assign(blankDb(), d); } } catch (e) { storageOk = false; }
+  return blankDb();
+}
+let db = loadDb();
+function persist() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(db)); storageOk = true; } catch (e) { storageOk = false; }
+  scheduleWrite(); paintSaved();
+}
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+
+
+/* ============ Archivo matrices.json en una carpeta local (File System Access API) ============ */
+const FILE_NAME = 'matrices.json';
+const fsSupported = typeof window.showDirectoryPicker === 'function' && window.isSecureContext;
+let dirH = null, fileSt = fsSupported ? 'need' : 'unsupported', writeT, writing = false, again = false;
+function idb() { return new Promise((res, rej) => { const r = indexedDB.open('matrices-fs', 1); r.onupgradeneeded = () => r.result.createObjectStore('h'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function idbGet(k) { try { const d = await idb(); return await new Promise(r => { const q = d.transaction('h').objectStore('h').get(k); q.onsuccess = () => r(q.result); q.onerror = () => r(null); }); } catch (e) { return null; } }
+async function idbSet(k, v) { try { const d = await idb(); await new Promise(r => { const t = d.transaction('h', 'readwrite'); t.objectStore('h').put(v, k); t.oncomplete = () => r(); t.onerror = () => r(); }); } catch (e) {} }
+async function readFileDb() { const fh = await dirH.getFileHandle(FILE_NAME, { create: true }); const t = await (await fh.getFile()).text(); return t.trim() ? JSON.parse(t) : null; }
+const validDb = d => d && Array.isArray(d.children) && Array.isArray(d.evals);
+async function writeFileDb() {
+  if (!dirH || fileSt !== 'ok') return;
+  if (writing) { again = true; return; }
+  writing = true;
+  try { const fh = await dirH.getFileHandle(FILE_NAME, { create: true }); const w = await fh.createWritable(); await w.write(JSON.stringify(db, null, 1)); await w.close(); }
+  catch (e) { fileSt = 'err'; }
+  writing = false; if (again) { again = false; writeFileDb(); }
+  paintSaved();
+}
+function scheduleWrite() { if (fileSt !== 'ok') return; clearTimeout(writeT); writeT = setTimeout(writeFileDb, 400); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(writeT); writeFileDb(); } });
+function replaceDb(d) { db = Object.assign(blankDb(), d); }
+function mergeDb(d) {
+  d.children.forEach(c => { const i = db.children.findIndex(x => x.id === c.id); if (i < 0) db.children.push(c); else db.children[i] = Object.assign(db.children[i], c); });
+  d.evals.forEach(e => { const i = db.evals.findIndex(x => x.id === e.id); if (i < 0) db.evals.push(e); else if ((e.updated || 0) > (db.evals[i].updated || 0)) db.evals[i] = e; });
+}
+async function attachFolder(interactive) {
+  let d = null;
+  try { d = await readFileDb(); } catch (e) { fileSt = 'err'; toast('No se pudo leer ' + FILE_NAME + ' (¿archivo dañado?). No se modificó.'); return false; }
+  const fileHas = validDb(d) && (d.children.length || d.evals.length), localHas = db.children.length || db.evals.length;
+  if (fileHas) {
+    const same = JSON.stringify(d.evals.map(e => e.id + ':' + e.updated).sort()) === JSON.stringify(db.evals.map(e => e.id + ':' + e.updated).sort()) && d.children.length === db.children.length;
+    if (localHas && !same && interactive) {
+      const r = await modal(`<p><b>La carpeta ya tiene un ${FILE_NAME}</b> con ${d.children.length} niños/as y ${d.evals.length} evaluaciones, y este navegador tiene datos distintos (${db.children.length} y ${db.evals.length}).</p><div class="acts"><button class="btn" data-v="no">Cancelar</button><button class="btn" data-v="mer">Combinar</button><button class="btn primary" data-v="file">Usar el de la carpeta</button></div>`);
+      if (r === 'file') replaceDb(d); else if (r === 'mer') mergeDb(d); else return false;
+    } else if (!localHas || !interactive) replaceDb(d);
+    else if (!same) mergeDb(d);
+  }
+  fileSt = 'ok'; persist(); return true;
+}
+async function connectFolder() {
+  try {
+    let h = dirH;
+    if (h) { const p = await h.requestPermission({ mode: 'readwrite' }); if (p !== 'granted') h = null; }
+    if (!h) h = await window.showDirectoryPicker({ mode: 'readwrite', id: 'matrices' });
+    dirH = h;
+    if (await attachFolder(true)) { await idbSet('dir', h); toast('Guardando en la carpeta «' + h.name + '» → ' + FILE_NAME); }
+    else { dirH = null; fileSt = 'need'; }
+  } catch (e) { if (!(e && e.name === 'AbortError')) { fileSt = 'need'; toast('No se pudo acceder a la carpeta: ' + (e && e.message || e)); } }
+  render();
+}
+async function initFolder() {
+  if (!fsSupported) return seedFromSite();
+  dirH = await idbGet('dir');
+  if (!dirH) return seedFromSite();
+  try { if ((await dirH.queryPermission({ mode: 'readwrite' })) === 'granted') { await attachFolder(false); } } catch (e) { dirH = null; }
+  if (ui.view === 'home') render();
+}
+async function seedFromSite() {
+  if (db.children.length || db.evals.length || !/^https?:$/.test(location.protocol)) return;
+  try { const r = await fetch(FILE_NAME + '?t=' + Date.now(), { cache: 'no-store' }); if (!r.ok) return; const d = await r.json();
+    if (validDb(d) && (d.children.length || d.evals.length)) { replaceDb(d); persist(); if (ui.view === 'home') render(); toast('Datos cargados desde ' + FILE_NAME + ' del sitio'); } } catch (e) {}
+}
+function folderBannerHtml() {
+  if (fileSt === 'unsupported') return '<div class="banner err"><span><b>Este navegador no puede guardar en una carpeta.</b> Abre el archivo HTML desde tu equipo con Chrome o Edge para guardar en matrices.json.</span></div>';
+  if (fileSt === 'err') return '<div class="banner err"><span><b>No se pudo escribir ' + FILE_NAME + '.</b> Los cambios siguen en el navegador; vuelve a conectar la carpeta.</span><button class="btn sm" data-act="connect">Conectar carpeta</button></div>';
+  if (fileSt === 'need') return '<div class="banner"><span><b>Conecta la carpeta donde está este HTML</b> para guardar todo en <b>' + FILE_NAME + '</b>. Se pide una vez por sesión (' + (dirH ? 'ya la elegiste antes: solo debes permitir el acceso' : 'elige la carpeta del archivo') + ').</span><button class="btn sm primary" data-act="connect">' + (dirH ? 'Permitir acceso' : 'Elegir carpeta') + '</button></div>';
+  return '<p class="muted small" style="margin-bottom:14px">Guardando automáticamente en la carpeta «' + esc(dirH.name) + '» → <b>' + FILE_NAME + '</b>. <button class="btn sm ghost" data-act="connect" style="padding:2px 8px">Cambiar carpeta</button></p>';
+}
+
+/* ============ Instrumento: niveles, funciones y conductas ============ */
+const ST = ['No se utiliza', 'Emergente', 'Dominado', 'Superado'];
+const LEVELS = [null,
+  { n: 'Nivel 1', t: 'Comportamiento preintencional' },
+  { n: 'Nivel 2', t: 'Conducta intencional' },
+  { n: 'Nivel 3', t: 'Comunicación no convencional' },
+  { n: 'Nivel 4', t: 'Comunicación convencional' },
+  { n: 'Nivel 5', t: 'Símbolos concretos' },
+  { n: 'Nivel 6', t: 'Símbolos abstractos' },
+  { n: 'Nivel 7', t: 'Lenguaje' }];
+const CATS = { mov: 'Movimientos corporales', son: 'Sonidos prematuros', fac: 'Expresiones faciales', ges: 'Gestos simples', vis: 'Visual', voc: 'Vocalizaciones y gestos convencionales', con: 'Símbolos concretos', abs: 'Símbolos abstractos', idi: 'Idioma' };
+const CAT_ORDER = ['mov', 'son', 'fac', 'ges', 'vis', 'voc', 'con', 'abs', 'idi'];
+const CAT_LVL = { mov: 3, son: 3, fac: 3, ges: 3, vis: 3, voc: 4, con: 5, abs: 6, idi: 7 };
+const GROUPS = [
+  { name: 'Rechazar', c0: 1, c1: 1 }, { name: 'Obtener', c0: 2, c1: 7 },
+  { name: 'Social', c0: 8, c1: 13 }, { name: 'Información', c0: 14, c1: 17 }];
+const groupOf = n => GROUPS.find(g => n >= g.c0 && n <= g.c1).name;
+
+const FUN = [], FM = {};
+function addF(f) { FUN.push(f); FM[f.id] = f; }
+function ab(id, short, q, sub, cats) { addF({ id, kind: id[0], n: +id.slice(1), short, q, sub, cats }); }
+const ABS_L = ['Palabra hablada', 'Seña manual', 'Palabra escrita', 'Palabra de Braille', 'Símbolo 3D abstracto', 'Símbolo 2D abstracto'];
+const absList = ex => ABS_L.map((l, i) => ex[i] ? l + ' (' + ex[i] + ')' : l);
+function cf(n, short, q, sub, cats, ex, idi) {
+  cats = Object.assign({}, cats); cats.abs = absList(ex); cats.idi = [idi];
+  addF({ id: 'C' + n, kind: 'C', n, short, q, sub, cats });
+}
+/* Nivel 1 y 2 */
+ab('A1', 'Expresa incomodidad', '¿Puede darse cuenta de cuándo {n} no está cómodo/a (con dolor, mojado/a, hambriento/a, asustado/a)?', '¿Qué hace {n} para demostrarle que está incómodo/a?', {
+  mov: ['Cambios de postura (aguanta el cuerpo, se retuerce, se da la vuelta)', 'Movimientos de extremidades (patea, agita los brazos)', 'Movimientos de cabeza (aparta la cabeza)'],
+  son: ['Llora, gruñe, chilla'], fac: ['Hace muecas'] });
+ab('A2', 'Expresa bienestar', '¿Puede darse cuenta de cuándo {n} está contento/a, cómodo/a o con buen ánimo?', '¿Qué hace {n} para demostrarle que está cómodo/a?', {
+  mov: ['Cambios de postura (aguanta el cuerpo, se relaja)', 'Movimientos de extremidades (patea, agita los brazos)', 'Movimientos de cabeza (asiente)'],
+  son: ['Arrullos, chillidos'], fac: ['Sonrisa'] });
+ab('A3', 'Expresa interés por otras personas', '¿Puede darse cuenta de cuándo {n} se interesa por otra gente?', '¿Qué hace {n} para demostrarle que está interesado/a en usted u otras personas?', {
+  mov: ['Cambios de postura (aguanta el cuerpo, se relaja)', 'Movimientos de extremidades (patea, agita los brazos)'],
+  son: ['Arrullo, agitación'], fac: ['Sonrisa'] });
+ab('B1', 'Protesta', '¿Puede notar que {n} no quiere algo específico, como cierta comida, un juguete o un juego que usted esté jugando, como que le hagan cosquillas?', '¿Qué hace {n} para demostrarle que no le gusta algo?', {
+  mov: ['Movimientos de cabeza (aparta la cabeza hacia un lado o hacia atrás)', 'Movimientos de brazos (agita los brazos, empuja, arroja objetos)', 'Movimientos de piernas (patea el suelo, patea)', 'Se aleja de personas u objetos'],
+  son: ['Lloriquea, alborota, grita'], fac: ['Frunce el ceño, hace muecas'] });
+ab('B2', 'Continúa una acción', '¿Puede notar a veces que a {n} le gustaría seguir con una acción o actividad que usted acaba de dejar de hacer con él/ella (como caballitos, jugar a las palmadas, jugar con un juguete musical)?', '¿Qué hace {n} para demostrarle que desea que siga haciendo una actividad?', {
+  mov: ['Movimientos de cabeza (se acerca, asiente)', 'Movimientos de brazos (agita los brazos)', 'Movimientos de piernas (patea)'],
+  son: ['Arrullos, chillidos, alboroto'], fac: ['Sonrisa'], vis: ['Mira a las personas'] });
+ab('B3', 'Obtiene más de algo', '¿Puede notar a veces que {n} quiere más de algo específico (como comida o un juguete)?', '¿Qué hace {n} para demostrarle que quiere más de algo?', {
+  mov: ['Se acerca al objeto deseado', 'Movimientos de cabeza (se acerca, asiente)', 'Movimientos de brazos (agita los brazos)', 'Movimientos de piernas (patea)', 'Toma el artículo deseado'],
+  son: ['Arrullos, chillidos, alboroto'], fac: ['Sonrisa'], vis: ['Mira los artículos deseados'] });
+ab('B4', 'Llama la atención', '¿Hace {n} algo que le hace dirigirle la atención, aun cuando no esté intentando atraer su atención hacia él/ella de manera intencionada?', '¿Qué comportamientos realiza {n} que atraen su atención?', {
+  mov: ['Se acerca a la persona', 'Movimientos de cabeza (se acerca, asiente)', 'Movimientos de brazos (agita los brazos)', 'Movimientos de piernas (patea)'],
+  son: ['Arrullos, chillidos, alboroto'], fac: ['Sonrisa'], vis: ['Mira a las personas'] });
+/* Niveles 3 a 7 (funciones C) */
+cf(1, 'Rechaza o niega algo', '¿Le muestra {n} de forma intencional que no quiere ciertas cosas o actividades?', '¿Qué hace {n} para no aceptar o rechazar algo?', {
+  mov: ['Movimientos corporales completos (aguanta el cuerpo, se retuerce, se da la vuelta)', 'Movimientos de cabeza (aparta la cabeza o la echa hacia un lado)', 'Movimientos de brazos y manos', 'Movimientos de piernas (patea el suelo, patea)'],
+  son: ['Grita, lloriquea'], fac: ['Frunce el ceño, hace muecas'], ges: ['Empujar objeto o persona para alejarla'],
+  voc: ['Le da un artículo no deseado', 'Niega con la cabeza', 'Vocalizaciones específicas («uh-uh»)'],
+  con: ['Rechaza la foto o el dibujo del artículo no deseado', 'Rechaza el símbolo de los objetos que representan el artículo no deseado'] },
+  ['«no», «acabado»', '«no», «para»', '«no», «acabado»', '«no», «para»', 'para «no», «parar»', 'para «no», «parar»'],
+  'Combina dos o más símbolos («para eso», «todo acabado», «no salir ahora»)');
+cf(2, 'Pide más de una acción', '¿Le muestra {n} intencionalmente que quiere más de una acción que usted acaba de parar de hacer (como jugar a esconderse y aparecer o darle movimiento a un juguete)?', '¿Qué hace {n} para demostrarle que quiere más de una acción?', {
+  mov: ['Movimientos corporales completos', 'Movimientos de brazos y manos (agita los brazos)', 'Movimientos de piernas (patea)'],
+  son: ['Arrullos, chillidos, risa'], fac: ['Sonríe'], ges: ['Agarra su mano', 'Le toca', 'Se inclina hacia usted o le da golpecitos'], vis: ['Le mira'],
+  voc: ['Le hace señas para que vaya', 'Mantiene sus manos alzadas o extendidas hacia usted (para subirlo)', 'Asiente con la cabeza'],
+  con: ['Señala la foto o el dibujo de la acción deseada', 'Señala el símbolo de los objetos que representan la acción deseada', 'Dramatiza la acción deseada'] },
+  ['«más», «cosquillas»', '«más», «columpio»', '«más», «cosquillas»', '«más», «piedra»', '«más», «cosquillas»', '«más», «comer»'],
+  'Combina dos o más símbolos («más cosquillas», «hazlo otra vez»)');
+cf(3, 'Pide una acción nueva', '¿Le indica {n} de forma intencional que quiere realizar una acción (una que no estaría haciendo un momento antes)?', '¿Cómo pide (u ordena) una nueva acción?', {
+  mov: ['Movimientos corporales completos (rebota de arriba abajo, como si deseara una acción nueva)', 'Movimientos de brazos y manos (mueve los brazos como si deseara una acción nueva)', 'Movimientos de piernas (mueve las piernas como si deseara una acción nueva)'],
+  fac: ['Sonríe'], ges: ['Agarra su mano'], vis: ['Le mira'],
+  voc: ['Le hace señas para que vaya', 'Mantiene sus manos alzadas o extendidas hacia usted (para subirlo)'],
+  con: ['Señala la foto o el dibujo de la acción deseada', 'Señala el símbolo de los objetos que representan la acción deseada', 'Dramatiza la acción deseada', 'Imita el sonido que acompaña la actividad deseada, por ejemplo, una canción'] },
+  ['«cosquillas»', '«comer»', '«cosquillas»', '«columpio»', '«roca»', '«cosquillas»'],
+  'Combina dos o más símbolos («haz cosquillas», «quiero mi columpio»)');
+const OBJ_CON = ['Señala la foto o el dibujo del artículo deseado', 'Señala el símbolo de objetos que representa el artículo deseado', 'Dramatiza el artículo deseado', 'Imita el sonido del artículo deseado'];
+cf(4, 'Pide más de un objeto', '¿Le muestra {n} intencionalmente que quiere más de algo (como un juguete o algo de comida) después de haber tenido un poco?', '¿Cómo pide más de un objeto?', {
+  mov: ['Movimientos corporales completos (se abalanza sobre un objeto)', 'Mueve la cabeza hacia el artículo deseado', 'Movimientos de brazos y manos', 'Movimientos de piernas'],
+  son: ['Agitación, chillido'], fac: ['Sonrisa'],
+  ges: ['Guía su mano hacia el artículo deseado o jala de usted hacia éste', 'Toca el objeto deseado (sin tomarlo)', 'Se inclina hacia usted o da golpecitos al objeto'],
+  vis: ['Mira el objeto deseado'], voc: ['Alterna la mirada entre usted y el artículo deseado', 'Señala el artículo deseado'], con: OBJ_CON },
+  ['«más», «pelota»', '«más», «muñeca»', '«más», «pelota»', '«más», «zumo»', '«más», «pelota»', '«más», «galleta»'],
+  'Combina dos símbolos o más («más zumo», «quiero más burbujas»)');
+cf(5, 'Elige', '¿Elige {n} de forma intencional entre dos o más artículos que le ofrezcan al mismo tiempo?', '¿Cómo elige entre artículos?', {
+  mov: ['Movimientos corporales completos (se abalanza sobre un objeto)', 'Mueve la cabeza hacia el artículo deseado'],
+  ges: ['Guía su mano hacia el artículo deseado', 'Se inclina hacia el artículo deseado, lo toca o le da golpecitos (sin tomarlo)'],
+  vis: ['Mira hacia un objeto'], voc: ['Alterna la mirada entre usted y el artículo deseado', 'Señala el artículo deseado'],
+  con: ['Señala la foto o el dibujo del artículo deseado', 'Señala el símbolo de objetos que representa el artículo deseado', 'Dramatiza el artículo deseado', 'Imita el sonido del artículo deseado'] },
+  ['«eso», nombre del artículo', '«eso», nombre del artículo', 'nombre del artículo', 'nombre del artículo', 'nombre del artículo', 'nombre del artículo'],
+  'Combina dos símbolos abstractos o más («ese ahí», «quiero mi tren»)');
+cf(6, 'Pide un objeto nuevo', '¿Le muestra {n} de forma intencional que quiere un nuevo objeto (como un juguete o comida) que está dentro de su alcance visual, auditivo o táctil, pero que usted no le ha ofrecido?', '¿Cómo pide objetos nuevos?', {
+  mov: ['Movimientos corporales completos (se abalanza sobre un objeto)', 'Mueve la cabeza hacia el artículo deseado'],
+  ges: ['Guía su mano hacia el artículo deseado o jala de usted hacia éste', 'Toca el objeto deseado (sin tomarlo)', 'Se inclina hacia usted o da golpecitos al objeto'],
+  vis: ['Mira hacia un objeto'], voc: ['Alterna la mirada entre usted y el artículo deseado', 'Señala el artículo deseado'], con: OBJ_CON },
+  ['«auto»', '«muñeca»', '«pelota»', '«galleta»', '«auto»', '«zumo»'],
+  'Combina dos símbolos o más («quiero pelota», «quiero el auto»)');
+cf(7, 'Pide objetos que están ausentes', '¿Le pide {n} de forma intencional cosas (juguetes, comida, gente) que no están presentes en el entorno inmediato (fuera de su alcance visual, auditivo o táctil, en otra habitación, etc.)?', '¿Cómo pide objetos ausentes?', {
+  con: ['Señala la foto o el dibujo del artículo/persona deseada', 'Señala el símbolo de objetos que representa el artículo deseado', 'Dramatiza el artículo deseado', 'Imita el sonido del artículo deseado'] },
+  ['«pelota»', '«muñeca»', '«galleta»', '«zumo»', '«libro»', '«pelota»'],
+  'Combina dos símbolos o más («quiero pelota», «quiero el auto»)');
+cf(8, 'Pide atención', '¿Intenta {n} de forma intencional atraer su atención?', '¿Cómo llama su atención?', {
+  son: ['Arrullos, chillidos'], fac: ['Sonrisa'], ges: ['Movimientos de brazos y manos (agita los brazos)', 'Le toca', 'Activar interruptor o «dispositivo de llamada»'],
+  vis: ['Le mira'], voc: ['Le hace señas para que vaya', 'Le señala'],
+  con: ['Indica una fotografía o dibujo que representa un concepto como «mírame»', 'Indica un objeto que representa un concepto como «mírame»'] },
+  ['«mira», «mamá»', '«libro», «papi»', '«mira», «mamá»', '«mira», «Pedro»', '«mira», «mamá»', '«mira», «maestro»'],
+  'Combina dos símbolos o más («mira papi», «mira eso allí»)');
+cf(9, 'Muestra afecto', '¿Le muestra {n} a usted o a otras personas afecto de forma intencional?', '¿Qué hace {n} para demostrar afecto?', {
+  son: ['Arrullos, chillidos'], fac: ['Sonrisa'], ges: ['Movimientos de brazos y manos', 'Le toca'], vis: ['Le mira'],
+  voc: ['Le abraza, le besa y le da palmaditas'], con: ['Señala la foto o el dibujo que representa conceptos como el de «amor»'] },
+  ['«amor»', '«abrazo»', '«amor»', '«amor»', '«abrazo»', '«amor»'],
+  'Combina dos símbolos o más («te quiero», «quiero mi mamita»)');
+cf(10, 'Saluda a las personas', '¿Hace {n} intencionalmente alguna seña para decir «hola» o «adiós» cuando alguien llega o se va?', '¿Cómo saluda a usted u otras personas?', {
+  voc: ['Dice «hola» o «adiós» con la mano'], con: ['Señala la foto o el dibujo que representa saludos o despedidas («hola», «adiós»)'] },
+  Array(6).fill('«hola», «adiós»'), 'Combina dos símbolos o más («adiós, mamita», «buenos días, papi»)');
+cf(11, 'Ofrece cosas o las comparte', '¿Le ofrece o comparte {n} cosas con usted intencionalmente, sin esperar nada a cambio?', '¿Cómo le ofrece o comparte algo con usted?', {
+  voc: ['Le da o le muestra algo', 'Vocalizaciones específicas con entonación de pregunta como diciendo «¿quieres esto?»'],
+  con: ['Indica una fotografía o dibujo que representa un concepto como «tuyo»', 'Indica un objeto que representa un concepto como «tuyo»'] },
+  ['«tuyo»', '«suyo»', '«tuyo»', '«tuyo»', '«tuyo»', '«tuyo»'], 'Combina dos símbolos o más («para ti», «galleta para ti»)');
+cf(12, 'Dirige su atención a algo', '¿Le dirige {n} de forma intencionada la atención hacia algo en lo que está interesado/a (como si dijese «mira eso»)?', '¿Cómo dirige su atención hacia algo?', {
+  voc: ['Señala hacia algo', 'Alterna la mirada entre usted, una persona o el objeto deseado'],
+  con: ['Indica una fotografía o dibujo que representa un concepto como «mira eso»', 'Indica un objeto que representa un concepto como «mira eso»'] },
+  ['«mira», «tres»', '«libro», «allí»', '«mira», «allí»', '«mira», «allí»', '«mira», «allí»', '«mira», «allí»'],
+  'Combina dos símbolos o más («por allí», «mira eso allí»)');
+cf(13, 'Usa fórmulas sociales con las que se manifiesta un trato amable', '¿Usa {n} de forma intencional normas de educación en la interacción social, como pedir permiso antes de hacer algo, indicando «por favor», «gracias» o «discúlpame»?', '¿Qué fórmulas sociales usa {n} para manifestar un trato amable?', {
+  voc: ['Señala hacia algo como preguntando «¿puedo tenerlo?»', 'Vocalización específica (entonando como diciendo «¿puedo?»)'],
+  con: ['Indica una fotografía o dibujo que representa un concepto como «mira eso», «gracias»', 'Indica un objeto que representa un concepto como «mira eso», «gracias»'] },
+  ['«por favor»', '«gracias»', '«por favor»', '«disculpe»', '«por favor»', '«gracias»'], 'Combina dos símbolos o más («sí porfi», «Mami, ¿me deja?»)');
+cf(14, 'Responde a preguntas de «Sí» y «No»', '¿Indica {n} intencionalmente «sí», «no» o «no lo sé» para responder a una pregunta?', '¿Cómo responde {n} las preguntas de «sí» o «no»?', {
+  voc: ['Dice «sí» con la cabeza', 'Niega con la cabeza', 'Encoge los hombros', 'Vocalización específica indicando sí o no («uh-huh», «nu-uh»)'],
+  con: ['Señala la foto o el dibujo que representa «sí» o «no»'] },
+  Array(6).fill('«sí», «no»'), 'Combina dos símbolos o más («no quiero», «no lo sé»)');
+cf(15, 'Hace preguntas', '¿Le hace preguntas {n} (sin que necesariamente tenga que utilizar palabras), esperando claramente una respuesta de su parte?', '¿Cómo hace preguntas?', {
+  voc: ['Levanta las manos o encoge el hombro como si estuviera preguntando', 'Vocalización específica como si estuviera preguntando', 'Alterna la mirada entre usted y un objeto o lugar'],
+  con: ['Indica una fotografía o dibujo que representa una pregunta («¿quién?», «¿qué?», «¿dónde?», «¿cuándo?», «¿por qué?»)', 'Indica un objeto que representa una pregunta («¿quién?», «¿qué?», «¿dónde?», «¿cuándo?», «¿por qué?»)'] },
+  Array(6).fill('«¿quién?», «¿qué?», «¿dónde?», «¿cuándo?», «¿por qué?»'), 'Combina dos símbolos o más («¿quién es?», «¿a dónde vas?»)');
+cf(16, 'Nombra cosas o personas', '¿Nombra o etiqueta {n} objetos, gente o actividades, ya sea espontáneamente o como respuesta a una pregunta hecha por usted (como «¿qué es eso?»)?', '¿Cómo nombra algo?', {
+  con: ['Señala una foto o dibujo de objeto/persona/lugar/actividad', 'Señala el símbolo objeto que representa un objeto/persona/lugar/actividad', 'Dramatiza una acción u objeto', 'Imita el sonido de un objeto'] },
+  Array(6).fill('nombre del artículo'), 'Combina dos símbolos o más («ese auto», «esto es auto»)');
+cf(17, 'Hace comentarios', '¿Le da {n} información sobre las cosas de forma espontánea (sin preguntarle) en forma de comentarios («qué bonito», «caliente», etc.)?', '¿Cómo hace comentarios?', {
+  con: ['Señala una foto o dibujo de objeto/persona/lugar/actividad/cualidad', 'Señala el símbolo objeto que representa un objeto/persona/lugar/actividad/cualidad', 'Dramatiza acción, objeto, persona o cualidad'] },
+  ['«bonito»', '«frío»', '«caliente»', '«malo»', '«bonito»', '«amarillo»'], 'Combina dos símbolos o más («tú bueno», «eso muy frío»)');
+
+/* Filas de la matriz: cada celda ocupa las columnas c0..c1 (C1 = col 1 ... C17 = col 17) */
+const ROWS = [];
+(function () {
+  ROWS.push({ lvl: 1, cells: [
+    { key: 'A1', code: 'A1', c0: 1, c1: 1 }, { key: 'A2', code: 'A2', c0: 2, c1: 6 }, { key: 'A3', code: 'A3', c0: 8, c1: 9 }] });
+  ROWS.push({ lvl: 2, cells: [
+    { key: 'B1', code: 'B1', c0: 1, c1: 1 }, { key: 'B2', code: 'B2', c0: 2, c1: 3 }, { key: 'B3', code: 'B3', c0: 4, c1: 6 }, { key: 'B4', code: 'B4', c0: 8, c1: 9 }] });
+  const nums = { 3: [1,2,3,4,5,6,8,9], 4: [1,2,3,4,5,6,8,9,10,11,12,13,14,15] };
+  for (let L = 3; L <= 7; L++) {
+    const list = nums[L] || [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
+    ROWS.push({ lvl: L, cells: list.map(n => ({ key: 'C' + n + '@' + L, code: 'C' + n, c0: n, c1: n })) });
+  }
+})();
+const cellFun = key => FM[key.split('@')[0]];
+const cellLabel = key => cellFun(key).short;
+
+/* ============ Evaluaciones: cálculo ============ */
+function newEval(childId, src) {
+  const e = { id: uid(), childId, date: today(), evaluator: db.evaluator || '', created: Date.now(), updated: Date.now(),
+    ans: {}, beh: {}, comments: {}, gates: { g1: 'si', g3: 'si' }, ov: {} };
+  if (src) { e.ans = Object.assign({}, src.ans); e.beh = Object.assign({}, src.beh); e.gates = Object.assign({}, src.gates); e.ov = Object.assign({}, src.ov); e.from = src.id; }
+  db.evals.push(e); persist(); return e;
+}
+function stOf(ev, key) {
+  if (ev.ov && ev.ov[key] === 3) return 3;
+  const f = cellFun(key), L = key.includes('@') ? +key.split('@')[1] : 0;
+  if (f.kind === 'A') { if (ev.gates.g1 === 'superado') return 3; if (ev.gates.g1 !== 'si') return 0; }
+  if (f.kind === 'C' && ev.gates.g3 !== 'si') return 0;
+  if (ev.ans[f.id] !== 'si') return 0;
+  let best = 0;
+  for (const cat of Object.keys(f.cats)) {
+    if (f.kind === 'C' && CAT_LVL[cat] !== L) continue;
+    f.cats[cat].forEach((_, i) => { const v = ev.beh[f.id + '|' + cat + '|' + i] || 0; if (v > best) best = v; });
+  }
+  return best;
+}
+function allCells(ev) { const out = []; ROWS.forEach(r => r.cells.forEach(c => out.push({ lvl: r.lvl, ...c, st: stOf(ev, c.key) }))); return out; }
+function applicable(ev) { return FUN.filter(f => !(f.kind === 'A' && ev.gates.g1 !== 'si') && !(f.kind === 'C' && ev.gates.g3 !== 'si')); }
+function progress(ev) { const a = applicable(ev), done = a.filter(f => ev.ans[f.id]).length; return { done, total: a.length, pct: a.length ? Math.round(done * 100 / a.length) : 100 }; }
+function counts(ev) { const c = [0,0,0,0]; allCells(ev).forEach(x => c[x.st]++); return c; }
+const childOf = id => db.children.find(c => c.id === id);
+const evalsOf = id => db.evals.filter(e => e.childId === id).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.created - a.created));
+const firstName = c => (c && c.name ? c.name.trim().split(/\s+/)[0] : 'el niño o la niña');
+
+/* ============ Interfaz común ============ */
+const app = $('#app');
+let ui = { view: 'home', childId: null, evalId: null, step: null, q: '', formFor: null };
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3600); }
+function modal(html) { return new Promise(res => { const m = $('#modal'); m.innerHTML = '<div class="box" role="dialog" aria-modal="true">' + html + '</div>'; m.hidden = false;
+  const done = v => { m.hidden = true; m.innerHTML = ''; res(v); };
+  m.querySelectorAll('[data-v]').forEach(b => b.onclick = () => done(b.dataset.v));
+  const first = m.querySelector('[data-v]'); if (first) first.focus(); }); }
+const ask = (msg, ok = 'Aceptar', danger = false) => modal('<p>' + msg + '</p><div class="acts"><button class="btn" data-v="no">Cancelar</button><button class="btn ' + (danger ? 'danger' : 'primary') + '" data-v="ok">' + ok + '</button></div>').then(v => v === 'ok');
+function go(v) { Object.assign(ui, v); window.scrollTo(0, 0); render(); }
+function render() { ({ home: renderHome, child: renderChild, wiz: renderWiz, res: renderRes }[ui.view])(); }
+function paintSaved() {
+  const s = $('#saved'); if (!s) return;
+  const d = new Date(), hm = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  if (fileSt === 'err') { s.className = 'saved bad'; s.textContent = 'No se pudo escribir matrices.json'; }
+  else if (!storageOk && fileSt !== 'ok') { s.className = 'saved bad'; s.textContent = 'Sin guardado. Conecta la carpeta.'; }
+  else if (fileSt === 'ok') { s.className = 'saved'; s.textContent = 'Guardado en matrices.json ' + hm; }
+  else { s.className = 'saved'; s.textContent = 'Guardado solo en el navegador ' + hm; }
+}
+
+/* ============ Descargas (capacidad "downloads" del visor) ============ */
+let dlNs;
+async function getDl() { if (dlNs !== undefined) return dlNs; try { dlNs = (typeof claude !== 'undefined' && claude.use) ? await claude.use('downloads') : null; } catch (e) { dlNs = null; } return dlNs; }
+async function saveFile(filename, data) {
+  const d = await getDl();
+  if (!d) {
+    try { const blob = data instanceof Blob ? data : new Blob([data]); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); toast('Descarga iniciada: ' + filename); return true; } catch (e) { toast('La descarga no está disponible en esta vista.'); return false; }
+  }
+  try { await d.save({ filename, data }); toast('Archivo guardado: ' + filename); return true; }
+  catch (e) { if (!e || e.code !== 'declined') toast('No se pudo guardar el archivo' + (e && e.message ? ': ' + e.message : '.')); return false; }
+}
+
+/* ============ Inicio ============ */
+function backupBannerHtml() {
+  if (fileSt === 'ok') return '';
+  if (!db.evals.length && !db.children.length) return '';
+  const days = db.lastBackup ? Math.floor((Date.now() - db.lastBackup) / 864e5) : null;
+  if (!storageOk) return '<div class="banner err"><span><b>Los datos no se están guardando en este navegador.</b> Descarga un respaldo ahora para no perder lo que ingreses.</span><button class="btn sm" data-act="backup">Descargar respaldo</button></div>';
+  if (days === null || days >= 7) return '<div class="banner"><span><b>' + (days === null ? 'Aún no has descargado un respaldo.' : 'Tu último respaldo fue hace ' + days + ' días.') + '</b> Los datos viven solo en este navegador; si se borra el historial se pierden.</span><button class="btn sm" data-act="backup">Descargar respaldo</button></div>';
+  return '';
+}
+function renderHome() {
+  app.innerHTML = `
+  <header class="head">
+    <div><p class="eyebrow">Evaluación de comunicación</p><h1>Mis matrices de comunicación</h1></div>
+    <div class="head-actions">
+      <button class="btn" data-act="backup">Descargar respaldo</button>
+      <button class="btn" data-act="import">Importar respaldo</button>
+      <button class="btn" data-act="xlsx">Exportar todo a Excel</button>
+      <input type="file" id="impFile" accept=".json,application/json" hidden>
+    </div>
+  </header>
+  ${folderBannerHtml()}${backupBannerHtml()}
+  <div class="tool">
+    <input type="search" id="q" placeholder="Buscar niño o niña por nombre…" value="${esc(ui.q)}" aria-label="Buscar">
+    <button class="btn primary" data-act="newChild">Nuevo niño o niña</button>
+  </div>
+  <div id="formSlot"></div>
+  <div id="clist"></div>`;
+  paintChildList();
+  if (ui.formFor === 'new') showChildForm(null);
+}
+function paintChildList() {
+  const q = ui.q.trim().toLowerCase();
+  const list = db.children.filter(c => c.name.toLowerCase().includes(q)).sort((a, b) => a.name.localeCompare(b.name, 'es'));
+  const box = $('#clist');
+  if (!list.length) {
+    box.innerHTML = db.children.length ? '<div class="empty"><b>Sin resultados</b>No hay niños o niñas con ese nombre.</div>'
+      : '<div class="empty"><b>Aún no hay niños ni niñas registrados</b>Agrega el primero con «Nuevo niño o niña» y comienza su primera evaluación.</div>';
+    return;
+  }
+  box.innerHTML = '<ul class="clist">' + list.map(c => {
+    const evs = evalsOf(c.id), last = evs[0], p = last ? progress(last) : null;
+    return `<li><button class="citem" data-child="${c.id}">
+      <span class="nm">${esc(c.name)}</span>
+      <span>${last ? (p.pct === 100 ? '<span class="chip ok">Última evaluación completa</span>' : '<span class="chip">Última al ' + p.pct + '%</span>') : '<span class="chip">Sin evaluaciones</span>'}</span>
+      <span class="muted small">${[c.dx, evs.length + (evs.length === 1 ? ' evaluación' : ' evaluaciones'), last ? 'última: ' + fmtDate(last.date) : ''].filter(Boolean).map(esc).join(' · ')}</span>
+    </button></li>`; }).join('') + '</ul>';
+}
+function showChildForm(c) {
+  const slot = $('#formSlot');
+  slot.innerHTML = `<form class="card" id="cform" style="margin-bottom:16px">
+    <h2 style="margin-bottom:14px">${c ? 'Datos de ' + esc(c.name) : 'Nuevo niño o niña'}</h2>
+    <div class="grid2">
+      <label class="f">Nombre completo<input type="text" id="cfName" required value="${esc(c ? c.name : '')}"></label>
+      <label class="f">Diagnóstico<input type="text" id="cfDx" value="${esc(c ? c.dx : '')}"></label>
+    </div>
+    <div class="foot-btns" style="margin-top:16px"><span>${c ? '<button type="button" class="btn danger" data-act="delChild">Eliminar niño o niña</button>' : ''}</span>
+      <span class="row-actions"><button type="button" class="btn" data-act="cancelForm">Cancelar</button><button class="btn primary" type="submit">Guardar</button></span></div></form>`;
+  $('#cfName').focus();
+  $('#cform').onsubmit = e => {
+    e.preventDefault();
+    const name = $('#cfName').value.trim(); if (!name) return;
+    const vals = { name, dx: $('#cfDx').value.trim() };
+    if (c) { Object.assign(c, vals); persist(); ui.formFor = null; toast('Datos guardados'); render(); }
+    else { const n = Object.assign({ id: uid(), created: Date.now() }, vals); db.children.push(n); persist(); ui.formFor = null; go({ view: 'child', childId: n.id }); }
+  };
+}
+
+/* ============ Ficha del niño ============ */
+function renderChild() {
+  const c = childOf(ui.childId); if (!c) return go({ view: 'home' });
+  const evs = evalsOf(c.id);
+  app.innerHTML = `
+  <button class="btn ghost sm crumb" data-act="home">← Todos los niños</button>
+  <header class="head">
+    <div><p class="eyebrow">${esc(c.dx ? 'Diagnóstico: ' + c.dx : 'Ficha')}</p><h1>${esc(c.name)}</h1></div>
+    <div class="head-actions">
+      <button class="btn" data-act="editChild">Editar datos</button>
+      <button class="btn" data-act="newFromLast" ${evs.length ? '' : 'disabled'}>Nueva a partir de la última</button>
+      <button class="btn primary" data-act="newEval">Nueva evaluación</button>
+    </div>
+  </header>
+  <div id="formSlot"></div>
+  ${evs.length ? `<div class="tablewrap"><table class="ev"><thead><tr><th>Fecha</th><th>Evaluador/a</th><th>Avance</th><th>Celdas dominadas</th><th>Acciones</th></tr></thead><tbody>
+  ${evs.map(e => { const p = progress(e), k = counts(e); return `<tr>
+    <td><b>${fmtDate(e.date)}</b></td>
+    <td>${esc(e.evaluator) || '<span class="muted">—</span>'}</td>
+    <td><div style="display:grid;gap:4px"><div class="bar"><i style="width:${p.pct}%"></i></div><span class="small muted">${p.done} de ${p.total} funciones${p.pct === 100 ? ' · completa' : ''}</span></div></td>
+    <td><b style="font-variant-numeric:tabular-nums">${k[2]}</b> <span class="muted small">· ${k[1]} emergentes</span></td>
+    <td><div class="row-actions">
+      <button class="btn sm primary" data-ev="${e.id}" data-act="openEval">${p.pct === 100 ? 'Corregir' : 'Continuar'}</button>
+      <button class="btn sm" data-ev="${e.id}" data-act="openRes">Matriz</button>
+      <button class="btn sm" data-ev="${e.id}" data-act="pdfM">PDF matriz</button>
+      <button class="btn sm" data-ev="${e.id}" data-act="pdfD">PDF dashboard</button>
+      <button class="btn sm" data-ev="${e.id}" data-act="fromEval">Nueva desde esta</button>
+      <button class="btn sm danger" data-ev="${e.id}" data-act="delEval">Eliminar</button></div></td></tr>`; }).join('')}
+  </tbody></table></div>` : '<div class="empty"><b>Todavía no hay evaluaciones</b>Usa «Nueva evaluación» para responder el cuestionario por etapas.</div>'}`;
+  if (ui.formFor === 'edit') showChildForm(c);
+}
+
+/* ============ Cuestionario por etapas ============ */
+function stepList(ev) {
+  const s = [{ id: 'g1', stage: 'Nivel 1' }];
+  if (ev.gates.g1 === 'si') ['A1', 'A2', 'A3'].forEach(id => s.push({ id, stage: 'Nivel 1' }));
+  ['B1', 'B2', 'B3', 'B4'].forEach(id => s.push({ id, stage: 'Nivel 2' }));
+  s.push({ id: 'g3', stage: 'Niveles 3 a 7' });
+  if (ev.gates.g3 === 'si') FUN.filter(f => f.kind === 'C').forEach(f => s.push({ id: f.id, stage: 'Niveles 3 a 7' }));
+  return s;
+}
+const nm = (t, c) => esc(t).replace(/\{n\}/g, esc(firstName(c)));
+function renderWiz() {
+  const ev = db.evals.find(e => e.id === ui.evalId), c = ev && childOf(ev.childId);
+  if (!ev || !c) return go({ view: 'home' });
+  const steps = stepList(ev); if (!ui.step || !steps.find(s => s.id === ui.step)) ui.step = steps[0].id;
+  const p = progress(ev);
+  app.innerHTML = `
+  <button class="btn ghost sm crumb" data-act="backToChild">← ${esc(c.name)}</button>
+  <div class="wz-head">
+    <label class="f">Fecha de aplicación<input type="date" id="evDate" value="${esc(ev.date)}"></label>
+    <label class="f">Evaluador/a<input type="text" id="evWho" value="${esc(ev.evaluator)}" placeholder="Nombre"></label>
+    <div class="wz-prog"><div class="bar"><i id="pbar" style="width:${p.pct}%"></i></div><span class="small muted" id="ptxt">${p.done} de ${p.total} funciones respondidas</span></div>
+    <span class="saved" id="saved"></span>
+    <button class="btn" data-act="toRes">Ver matriz</button>
+  </div>
+  <div class="wiz"><details class="nav" id="navd"><summary>Etapas del cuestionario</summary><div id="navbody"></div></details><main id="stepbox"></main></div>`;
+  const nd = $('#navd'); nd.open = window.matchMedia('(min-width:901px)').matches;
+  paintNav(); paintStep(); paintSaved();
+}
+function paintNav() {
+  const ev = db.evals.find(e => e.id === ui.evalId), steps = stepList(ev); let last = '', h = '';
+  steps.forEach(s => {
+    if (s.stage !== last) { h += '<div class="stg">' + s.stage + '</div>'; last = s.stage; }
+    const f = FM[s.id]; let dot = 'dot', label;
+    if (f) { if (ev.ans[f.id]) dot += ' done'; label = '<b>' + f.id + '</b> ' + esc(f.short); }
+    else { dot += ' done'; label = s.id === 'g1' ? 'Introducción al nivel 1' : 'Introducción a los niveles 3 a 7'; }
+    h += '<button data-step="' + s.id + '" class="' + (s.id === ui.step ? 'cur' : '') + '"><i class="' + dot + '"></i><span>' + label + '</span></button>';
+  });
+  $('#navbody').innerHTML = h;
+}
+function paintBar() { const ev = db.evals.find(e => e.id === ui.evalId), p = progress(ev); $('#pbar').style.width = p.pct + '%'; $('#ptxt').textContent = p.done + ' de ' + p.total + ' funciones respondidas'; }
+function paintStep() {
+  const ev = db.evals.find(e => e.id === ui.evalId), c = childOf(ev.childId), steps = stepList(ev);
+  const i = steps.findIndex(s => s.id === ui.step), prev = steps[i - 1], next = steps[i + 1];
+  let body;
+  if (ui.step === 'g1' || ui.step === 'g3') body = gateHtml(ev, c, ui.step);
+  else body = funHtml(ev, c, FM[ui.step]);
+  $('#stepbox').innerHTML = '<section class="card">' + body + `
+    <div class="foot-btns">
+      <button class="btn" data-act="prev" ${prev ? '' : 'disabled'}>← Anterior</button>
+      ${next ? '<button class="btn primary" data-act="next">Siguiente →</button>' : '<button class="btn primary" data-act="toRes">Ver matriz y descargas</button>'}
+    </div></section>`;
+  paintNav();
+}
+function gateHtml(ev, c, g) {
+  const v = ev.gates[g], n = esc(firstName(c));
+  const opt = (val, txt) => `<label><input type="radio" name="gate" data-g="${g}" value="${val}" ${v === val ? 'checked' : ''}><span>${txt}</span></label>`;
+  if (g === 'g1') return `<div class="step-top"><span class="code">Nivel 1</span><span class="muted">Comportamiento preintencional</span></div>
+    <h2>${n} no parece tener control sobre su cuerpo aún</h2>
+    <div class="gate-box"><p>La única forma en que sé que quiere algo es porque se molesta o se queja cuando está infeliz o no está cómodo/a (usualmente se calma cuando logro averiguar qué lo/la molesta), y sonríe o hace ruiditos cuando está contento/a.</p></div>
+    <p class="q" style="margin-top:16px"><b>¿Esto describe a ${n}?</b></p>
+    <div class="gate-opts">${opt('si', 'Sí, esto lo/la describe. Responder las preguntas A1 a A3.')}${opt('supera', 'No: esta etapa supera la capacidad de ' + n + '.')}${opt('superado', 'No: ' + n + ' ya superó esta etapa.')}</div>
+    <p class="muted small" style="margin-top:12px">Si eliges una de las dos últimas, se omiten A1 a A3. «Supera la capacidad» deja la fila en blanco; «ya superó» la pinta en gris (superado).</p>`;
+  return `<div class="step-top"><span class="code">Niveles 3 a 7</span><span class="muted">Funciones C1 a C17</span></div>
+    <h2>${n} claramente trata de comunicar sus necesidades</h2>
+    <div class="gate-box"><p>Sabe cómo hacer para conseguir que yo haga algo por él/ella. Usa varios comportamientos para comunicarse conmigo:</p>
+    <ul><li>Gestos como señalar, sacudir la cabeza, jalarme del brazo o mirar alternativamente a mí y a lo que quiere.</li>
+    <li>Sonidos como chillidos para mostrar que desea algo, o hacer rabieta cuando no quiere algo.</li>
+    <li>Lenguaje o formas simbólicas de comunicación como el habla, la escritura, Braille, pictogramas, símbolos tridimensionales o lenguaje de señas.</li></ul></div>
+    <p class="q" style="margin-top:16px"><b>¿Esto describe a ${n}?</b></p>
+    <div class="gate-opts">${opt('si', 'Sí, esto lo/la describe. Responder las funciones C1 a C17.')}${opt('supera', 'No: esta etapa supera la capacidad de ' + n + '.')}</div>
+    <p class="muted small" style="margin-top:12px">Con «supera la capacidad» se omiten C1 a C17 y esas celdas quedan en blanco.</p>`;
+}
+function funHtml(ev, c, f) {
+  const a = ev.ans[f.id], stageLbl = f.kind === 'A' ? 'Nivel 1' : f.kind === 'B' ? 'Nivel 2' : 'Niveles 3 a 7 · ' + groupOf(f.n);
+  const cats = CAT_ORDER.filter(k => f.cats[k]);
+  const catsHtml = cats.map(cat => {
+    const lv = f.kind === 'C' ? LEVELS[CAT_LVL[cat]].n : '';
+    const rows = f.cats[cat].map((t, i) => { const k = f.id + '|' + cat + '|' + i, v = ev.beh[k] || 0;
+      return `<div class="beh"><div class="bl">${esc(t)}</div><div class="seg" role="radiogroup" aria-label="${esc(t)}">
+      ${[0,1,2].map(s => `<label class="s${s}"><input type="radio" name="b-${k}" data-b="${k}" value="${s}" ${v === s ? 'checked' : ''}><span>${ST[s]}</span></label>`).join('')}</div></div>`; }).join('');
+    const ck = f.id + '|' + cat;
+    return `<fieldset class="cat"><legend class="cat-h"><span>${CATS[cat]}</span>${lv ? '<small>cuenta en el ' + lv + '</small>' : ''}</legend>
+      ${rows}
+      <details class="cm" ${ev.comments[ck] ? 'open' : ''}><summary>Comentarios</summary><textarea data-c="${ck}" aria-label="Comentarios sobre ${esc(CATS[cat])}">${esc(ev.comments[ck] || '')}</textarea></details></fieldset>`; }).join('');
+  return `<div class="step-top"><span class="code">${f.id}</span><span class="muted">${stageLbl}</span></div>
+    <h2>${esc(f.short)}</h2>
+    <p class="q">${nm(f.q, c)}</p>
+    <div class="yn" role="radiogroup" aria-label="Respuesta">
+      <label><input type="radio" name="yn" data-yn value="si" ${a === 'si' ? 'checked' : ''}><span>Sí</span></label>
+      <label><input type="radio" name="yn" data-yn value="no" ${a === 'no' ? 'checked' : ''}><span>No</span></label></div>
+    <p class="muted small" id="ynHint" ${a === 'no' ? '' : 'hidden'}>Todas las conductas de esta función quedan registradas como «No se utiliza».</p>
+    <div class="behs" id="behs" ${a === 'si' ? '' : 'hidden'}><h3 class="sub">${nm(f.sub, c)}</h3>${catsHtml}</div>`;
+}
+
+/* ============ Resultado ============ */
+function renderRes() {
+  const ev = db.evals.find(e => e.id === ui.evalId), c = ev && childOf(ev.childId);
+  if (!ev || !c) return go({ view: 'home' });
+  const k = counts(ev), p = progress(ev), cells = allCells(ev);
+  const topLvl = Math.max(0, ...cells.filter(x => x.st === 2).map(x => x.lvl));
+  let h = `<button class="btn ghost sm crumb" data-act="backToChild">← ${esc(c.name)}</button>
+  <header class="head"><div><p class="eyebrow">Matriz de comunicación · aplicada el ${fmtDate(ev.date)}${ev.evaluator ? ' · ' + esc(ev.evaluator) : ''}</p><h1>${esc(c.name)}</h1></div>
+  <div class="head-actions"><button class="btn" data-act="toWiz">Corregir respuestas</button></div></header>`;
+  if (p.pct < 100) h += `<div class="banner"><span><b>Faltan ${p.total - p.done} funciones por responder.</b> Mientras tanto aparecen como «No se utiliza».</span><button class="btn sm" data-act="toWiz">Continuar</button></div>`;
+  h += `<div class="res-actions"><button class="btn primary" data-act="pdfM">Descargar matriz (PDF)</button><button class="btn primary" data-act="pdfD">Descargar dashboard (PDF)</button></div>
+  <div class="legend">${ST.map((s, i) => '<span><i class="st' + i + '"></i>' + s + '</span>').join('')}</div>
+  <div class="mxscroll"><div class="mx">`;
+  ROWS.forEach((r, ri) => {
+    h += `<div class="lv" style="grid-row:${ri + 1}"><b>${LEVELS[r.lvl].n}</b>${LEVELS[r.lvl].t}</div>`;
+    r.cells.forEach(cl => { const st = stOf(ev, cl.key); h += `<button class="cell st${st}" data-cell="${cl.key}" style="grid-row:${ri + 1};grid-column:${cl.c0 + 1}/${cl.c1 + 2}" title="${esc(cl.code + ' · ' + cellLabel(cl.key) + ' · ' + ST[st])}"><b>${cl.code}</b><span>${esc(cellLabel(cl.key))}</span></button>`; });
+  });
+  h += '<div class="lv" style="grid-row:8;background:transparent"></div>' + GROUPS.map(g => `<div class="grp" style="grid-row:8;grid-column:${g.c0 + 1}/${g.c1 + 2}">${g.name}</div>`).join('');
+  h += `</div></div><p class="muted small" style="margin-top:6px">Toca una celda para marcarla como «Superado» (gris) o volver al valor calculado.</p>
+  <div class="kpis"><div class="kpi k2"><b>${k[2]}</b><span>celdas dominadas</span></div><div class="kpi k1"><b>${k[1]}</b><span>celdas emergentes</span></div><div class="kpi k3"><b>${k[3]}</b><span>celdas superadas</span></div>
+  <div class="kpi"><b>${topLvl ? 'N' + topLvl : '—'}</b><span>nivel más alto con alguna celda dominada</span></div></div>`;
+  app.innerHTML = h;
+}
+
+/* ============ PDF de la matriz (dibujada en vectores) ============ */
+const RGB = [[255,255,255], [253,227,127], [251,169,125], [207,207,207]];
+function fitText(doc, text, w, fs) { doc.setFontSize(fs); return doc.splitTextToSize(text, w); }
+function drawMatrixPDF(doc, ev, c) {
+  const PW = 297, M = 10, labW = 25, gx = 1.2, gy = 1.6;
+  const cw = (PW - 2 * M - labW - gx - 16 * gx) / 17, colX = n => M + labW + gx + (n - 1) * (cw + gx);
+  const rowH = [17, 17, 21, 21, 24, 24, 24];
+  doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(c.name, M, 11);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+  doc.text('Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? '    Evaluador/a: ' + ev.evaluator : '') + (c.dx ? '    Diagnóstico: ' + c.dx : ''), M, 16.5);
+  doc.setDrawColor(95); doc.setLineWidth(0.15);
+  let y = 22; const y0 = y;
+  ROWS.forEach((r, ri) => {
+    const h = rowH[ri];
+    doc.setFillColor(112, 119, 119); doc.rect(M, y, labW, h, 'F');
+    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text(LEVELS[r.lvl].n, M + labW / 2, y + h / 2 - 3, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); const tl = fitText(doc, LEVELS[r.lvl].t, labW - 3, 5.5);
+    doc.text(tl, M + labW / 2, y + h / 2 - 0.4, { align: 'center', lineHeightFactor: 1.15 });
+    r.cells.forEach(cl => {
+      const x = colX(cl.c0), w = colX(cl.c1) + cw - x, st = stOf(ev, cl.key);
+      doc.setFillColor(...RGB[st]); doc.rect(x, y, w, h, 'FD');
+      doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
+      const lines = fitText(doc, cellLabel(cl.key), w - 1.6, 5);
+      const lh = 5 * 0.3528 * 1.15, codeH = 3, total = codeH + lines.length * lh, top = y + (h - total) / 2;
+      doc.text(cl.code, x + w / 2, top + 2.2, { align: 'center' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(5);
+      doc.text(lines, x + w / 2, top + codeH + lh * 0.8, { align: 'center', lineHeightFactor: 1.15 });
+    });
+    y += h + gy;
+  });
+  GROUPS.forEach(g => {
+    const x = colX(g.c0), w = colX(g.c1) + cw - x;
+    doc.setFillColor(112, 119, 119); doc.rect(x, y, w, 7, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+    doc.text(g.name, x + w / 2, y + 4.7, { align: 'center' });
+  });
+  doc.setFillColor(112, 119, 119); doc.rect(M, y, labW, 7, 'F');
+  /* leyenda en el hueco superior derecho */
+  const lx = colX(11), ly = y0 + 2; doc.setFontSize(8);
+  ST.forEach((s, i) => { doc.setFillColor(...RGB[i]); doc.setDrawColor(95); doc.rect(lx, ly + i * 7, 5, 5, 'FD'); doc.setTextColor(25); doc.setFont('helvetica', 'normal'); doc.text(s, lx + 8, ly + i * 7 + 3.8); });
+  doc.setTextColor(120); doc.setFontSize(6.5); doc.text('Réplica de uso interno basada en la Communication Matrix (Charity Rowland). Los resultados son orientativos y no reemplazan el juicio profesional.', M, 203);
+}
+async function makeMatrixPdf(ev, c) {
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  drawMatrixPDF(doc, ev, c); return doc.output('arraybuffer');
+}
+
+/* ============ PDF del dashboard (gráficos con Chart.js) ============ */
+const CHART_COL = ['#d9d9d9', '#fde37f', '#fba97d', '#bdbdbd'];
+function chartImg(cfg, w = 900, h = 380) {
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  cfg.options = Object.assign({ animation: false, responsive: false, devicePixelRatio: 1 }, cfg.options || {});
+  const ch = new Chart(cv.getContext('2d'), cfg); const url = cv.toDataURL('image/png'); ch.destroy(); return url;
+}
+function lvlStats(ev) { return [1,2,3,4,5,6,7].map(L => { const o = [0,0,0,0]; ROWS.find(r => r.lvl === L).cells.forEach(cl => o[stOf(ev, cl.key)]++); return o; }); }
+function funProfile(ev) {
+  return FUN.map(f => {
+    let dom = 0, em = 0;
+    ROWS.forEach(r => r.cells.forEach(cl => { if (cellFun(cl.key) !== f) return; const st = stOf(ev, cl.key); if (st >= 2) dom = Math.max(dom, r.lvl); if (st === 1) em = Math.max(em, r.lvl); }));
+    return { f, dom, em };
+  });
+}
+async function makeDashPdf(ev, c) {
+  Chart.defaults.font.family = 'Helvetica, Arial, sans-serif'; Chart.defaults.font.size = 15; Chart.defaults.color = '#222';
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const PW = 210, M = 14, CW = PW - 2 * M, cells = allCells(ev), k = counts(ev);
+  const foot = () => { doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120); doc.text('Basado en la Communication Matrix (Charity Rowland). Resultados orientativos; no reemplazan el juicio profesional.', M, 290); };
+  const topLvl = Math.max(0, ...cells.filter(x => x.st === 2).map(x => x.lvl));
+  /* Página 1 */
+  doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('Dashboard de comunicación', M, 17);
+  doc.setFontSize(13); doc.text(c.name, M, 25); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text('Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? '   ·   Evaluador/a: ' + ev.evaluator : '') + (c.dx ? '   ·   Diagnóstico: ' + c.dx : ''), M, 31);
+  const kp = [['Dominadas', k[2], 2], ['Emergentes', k[1], 1], ['Superadas', k[3], 3], ['No se utilizan', k[0], 0]];
+  const bw = (CW - 9) / 4; kp.forEach((q, i) => { const x = M + i * (bw + 3); doc.setFillColor(...RGB[q[2]]); doc.setDrawColor(150); doc.rect(x, 36, bw, 17, 'FD'); doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.text(String(q[1]), x + 4, 46.5); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.text(q[0] + ' (de 80 celdas)', x + 4, 51); });
+  doc.setFontSize(9.5); doc.text('Nivel más alto con alguna celda dominada: ' + (topLvl ? LEVELS[topLvl].n + ' · ' + LEVELS[topLvl].t : 'ninguno'), M, 60);
+  const ls = lvlStats(ev);
+  const img1 = chartImg({ type: 'bar', data: { labels: LEVELS.slice(1).map(l => [l.n, l.t.length > 20 ? l.t.slice(0, 18) + '…' : l.t]), datasets: [
+    { label: 'Dominado', data: ls.map(o => o[2]), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
+    { label: 'Emergente', data: ls.map(o => o[1]), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 },
+    { label: 'Superado', data: ls.map(o => o[3]), backgroundColor: CHART_COL[3], borderColor: '#555', borderWidth: 1 },
+    { label: 'No se utiliza', data: ls.map(o => o[0]), backgroundColor: '#f0f0f0', borderColor: '#999', borderWidth: 1 }] },
+    options: { plugins: { title: { display: true, text: 'Celdas por nivel de comunicación', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 2, precision: 0 }, title: { display: true, text: 'Celdas' } } } } });
+  doc.addImage(img1, 'PNG', M, 64, CW, CW * 380 / 900);
+  const gs = GROUPS.map(g => { let tot = 0, d = 0, e = 0, s = 0; cells.forEach(x => { if (x.lvl >= 3 && x.code[0] === 'C') { const n = +x.code.slice(1); if (n >= g.c0 && n <= g.c1) { tot++; if (x.st === 2) d++; else if (x.st === 1) e++; else if (x.st === 3) s++; } } }); return { g, tot, d, e, s }; });
+  const img2 = chartImg({ type: 'bar', data: { labels: gs.map(o => o.g.name + ' (' + o.tot + ' celdas)'), datasets: [
+    { label: 'Dominado', data: gs.map(o => Math.round(o.d * 100 / o.tot)), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
+    { label: 'Emergente', data: gs.map(o => Math.round(o.e * 100 / o.tot)), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 },
+    { label: 'Superado', data: gs.map(o => Math.round(o.s * 100 / o.tot)), backgroundColor: CHART_COL[3], borderColor: '#555', borderWidth: 1 }] },
+    options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Por tipo de función (niveles 3 a 7), % de celdas', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { stacked: true, min: 0, max: 100, title: { display: true, text: '% de celdas' } }, y: { stacked: true } } } }, 900, 330);
+  doc.addImage(img2, 'PNG', M, 64 + CW * 380 / 900 + 4, CW, CW * 330 / 900);
+  foot();
+  /* Página 2 */
+  doc.addPage(); const pr = funProfile(ev).filter(x => x.f.kind === 'C');
+  const img3 = chartImg({ type: 'bar', data: { labels: pr.map(x => x.f.id + ' ' + (x.f.short.length > 26 ? x.f.short.slice(0, 25) + '…' : x.f.short)), datasets: [
+    { label: 'Mayor nivel dominado', data: pr.map(x => x.dom), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
+    { label: 'Mayor nivel emergente', data: pr.map(x => x.em), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 }] },
+    options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Perfil por función: nivel alcanzado (0 = ninguno)', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { min: 0, max: 7, ticks: { stepSize: 1 }, title: { display: true, text: 'Nivel' } }, y: { ticks: { font: { size: 13 } } } } } }, 900, 760);
+  doc.addImage(img3, 'PNG', M, 14, CW, CW * 760 / 900);
+  let y = 14 + CW * 760 / 900 + 6;
+  const hist = evalsOf(c.id).slice().reverse();
+  if (hist.length >= 2) {
+    const img4 = chartImg({ type: 'line', data: { labels: hist.map(e => fmtDate(e.date)), datasets: [
+      { label: 'Dominadas', data: hist.map(e => counts(e)[2]), borderColor: '#d9692f', backgroundColor: '#fba97d', tension: .2, pointRadius: 5 },
+      { label: 'Emergentes', data: hist.map(e => counts(e)[1]), borderColor: '#b89a12', backgroundColor: '#fde37f', tension: .2, pointRadius: 5 }] },
+      options: { plugins: { title: { display: true, text: 'Evolución entre evaluaciones', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'Celdas' } } } } }, 900, 300);
+    doc.addImage(img4, 'PNG', M, y, CW, CW * 300 / 900); y += CW * 300 / 900 + 4;
+  }
+  foot();
+  /* Página 3: resumen de funciones y observaciones */
+  doc.addPage(); y = 18; doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('Resumen por función y observaciones', M, y); y += 7;
+  const colx = [M, M + 62, M + 92, M + 122]; const head = () => { doc.setFillColor(112, 119, 119); doc.rect(M, y, CW, 6.5, 'F'); doc.setTextColor(255); doc.setFontSize(8); doc.text('Función', colx[0] + 2, y + 4.4); doc.text('Mayor nivel dominado', colx[1] + 1, y + 4.4); doc.text('Mayor nivel emergente', colx[2] + 1, y + 4.4); doc.text('Observaciones', colx[3] + 1, y + 4.4); y += 6.5; };
+  head();
+  funProfile(ev).forEach(x => {
+    const f = x.f, cm = Object.keys(f.cats).filter(cat => ev.comments[f.id + '|' + cat]).map(cat => CATS[cat] + ': ' + ev.comments[f.id + '|' + cat]).join(' / ');
+    doc.setFontSize(7.5); const cl = cm ? doc.splitTextToSize(cm, CW - (colx[3] - M) - 2) : ['—']; const nameL = doc.splitTextToSize(f.id + '  ' + f.short, 58);
+    const h = Math.max(6.5, Math.max(cl.length, nameL.length) * 3.3 + 3);
+    if (y + h > 280) { foot(); doc.addPage(); y = 16; head(); }
+    doc.setDrawColor(200); doc.line(M, y + h, M + CW, y + h);
+    doc.setTextColor(25); doc.setFont('helvetica', 'normal'); doc.text(nameL, colx[0] + 2, y + 4.3);
+    const lvTxt = v => v ? LEVELS[v].n + ' · ' + LEVELS[v].t.split(' ')[0] : '—';
+    doc.text(lvTxt(x.dom), colx[1] + 1, y + 4.3); doc.text(lvTxt(x.em), colx[2] + 1, y + 4.3); doc.text(cl, colx[3] + 1, y + 4.3);
+    y += h;
+  });
+  foot();
+  return doc.output('arraybuffer');
+}
+
+/* ============ Exportar / respaldo ============ */
+function xlsxData() {
+  const wb = XLSX.utils.book_new(), keys = []; ROWS.forEach(r => r.cells.forEach(cl => keys.push(cl.key)));
+  const m = [['Niño/a', 'Fecha de aplicación', 'Evaluador/a', 'Avance %'].concat(keys.map(k => k.replace('@', ' nivel ') ))];
+  const d = [['Niño/a', 'Fecha de aplicación', 'Evaluador/a', 'Función', 'Nombre de la función', 'Categoría', 'Conducta', 'Estado', 'Comentario de la categoría']];
+  const sorted = db.evals.slice().sort((a, b) => a.date < b.date ? -1 : 1);
+  sorted.forEach(e => {
+    const c = childOf(e.childId); if (!c) return;
+    m.push([c.name, e.date, e.evaluator, progress(e).pct].concat(keys.map(k => ST[stOf(e, k)])));
+    FUN.forEach(f => { const ans = e.ans[f.id];
+      Object.keys(f.cats).forEach(cat => f.cats[cat].forEach((t, i) => { const v = e.beh[f.id + '|' + cat + '|' + i] || 0;
+        d.push([c.name, e.date, e.evaluator, f.id, f.short, CATS[cat], t, ans === 'si' ? ST[v] : (ans === 'no' ? 'No se utiliza' : 'Sin responder'), i === 0 ? (e.comments[f.id + '|' + cat] || '') : '']); })); });
+  });
+  const s1 = XLSX.utils.aoa_to_sheet(m), s2 = XLSX.utils.aoa_to_sheet(d);
+  s1['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 20 }, { wch: 9 }].concat(keys.map(() => ({ wch: 13 }))); s2['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 20 }, { wch: 8 }, { wch: 30 }, { wch: 30 }, { wch: 60 }, { wch: 14 }, { wch: 40 }];
+  s1['!freeze'] = { xSplit: 2, ySplit: 1 };
+  XLSX.utils.book_append_sheet(wb, s1, 'Matriz por evaluación'); XLSX.utils.book_append_sheet(wb, s2, 'Detalle de conductas');
+  return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+}
+async function doBackup() { const ok = await saveFile('respaldo_matrices_' + today() + '.json', JSON.stringify(db, null, 1)); if (ok) { db.lastBackup = Date.now(); persist(); if (ui.view === 'home') render(); } }
+async function doImport(file) {
+  let d; try { d = JSON.parse(await file.text()); } catch (e) { return toast('El archivo no es un respaldo válido.'); }
+  if (!d || !Array.isArray(d.children) || !Array.isArray(d.evals)) return toast('El archivo no es un respaldo válido.');
+  const r = await modal(`<p><b>El respaldo trae ${d.children.length} niños/as y ${d.evals.length} evaluaciones.</b></p><p class="muted">Combinar agrega lo que falta y actualiza lo que sea más reciente. Reemplazar borra lo actual y deja solo el respaldo.</p><div class="acts"><button class="btn" data-v="no">Cancelar</button><button class="btn danger" data-v="rep">Reemplazar todo</button><button class="btn primary" data-v="mer">Combinar</button></div>`);
+  if (r === 'rep') replaceDb(d);
+  else if (r === 'mer') mergeDb(d);
+  else return;
+  persist(); toast('Respaldo importado'); render();
+}
+
+/* ============ Eventos ============ */
+document.addEventListener('click', async ev => {
+  const b = ev.target.closest('[data-act],[data-child],[data-step],[data-cell]'); if (!b) return;
+  const e = () => db.evals.find(x => x.id === (b.dataset.ev || ui.evalId));
+  if (b.dataset.child) return go({ view: 'child', childId: b.dataset.child, formFor: null });
+  if (b.dataset.step) { ui.step = b.dataset.step; paintStep(); const nd = $('#navd'); if (nd && !window.matchMedia('(min-width:901px)').matches) nd.open = false; return window.scrollTo(0, 0); }
+  if (b.dataset.cell) { const E = e(); if (!E) return; E.ov = E.ov || {}; if (E.ov[b.dataset.cell] === 3) delete E.ov[b.dataset.cell]; else E.ov[b.dataset.cell] = 3; E.updated = Date.now(); persist(); return renderRes(); }
+  switch (b.dataset.act) {
+    case 'home': return go({ view: 'home', formFor: null });
+    case 'backToChild': return go({ view: 'child', formFor: null });
+    case 'newChild': ui.formFor = 'new'; return showChildForm(null);
+    case 'editChild': ui.formFor = 'edit'; return showChildForm(childOf(ui.childId));
+    case 'cancelForm': ui.formFor = null; return render();
+    case 'delChild': { const c = childOf(ui.childId), n = evalsOf(c.id).length; if (await ask('¿Eliminar a <b>' + esc(c.name) + '</b> y sus ' + n + ' evaluaciones? No se puede deshacer.', 'Sí, eliminar', true)) { db.evals = db.evals.filter(x => x.childId !== c.id); db.children = db.children.filter(x => x.id !== c.id); persist(); toast('Eliminado'); go({ view: 'home', formFor: null }); } return; }
+    case 'newEval': { const n = newEval(ui.childId); return go({ view: 'wiz', evalId: n.id, step: null }); }
+    case 'newFromLast': { const l = evalsOf(ui.childId)[0]; if (!l) return; const n = newEval(ui.childId, l); toast('Nueva evaluación con las respuestas de la última'); return go({ view: 'wiz', evalId: n.id, step: null }); }
+    case 'fromEval': { const n = newEval(ui.childId, e()); toast('Nueva evaluación con las respuestas de la elegida'); return go({ view: 'wiz', evalId: n.id, step: null }); }
+    case 'openEval': return go({ view: 'wiz', evalId: b.dataset.ev, step: null });
+    case 'openRes': return go({ view: 'res', evalId: b.dataset.ev });
+    case 'toRes': return go({ view: 'res' });
+    case 'toWiz': return go({ view: 'wiz', step: null });
+    case 'delEval': { const E = e(); if (await ask('¿Eliminar la evaluación del <b>' + fmtDate(E.date) + '</b>? No se puede deshacer.', 'Sí, eliminar', true)) { db.evals = db.evals.filter(x => x.id !== E.id); persist(); toast('Evaluación eliminada'); render(); } return; }
+    case 'prev': case 'next': { const E = e(), st = stepList(E), i = st.findIndex(s => s.id === ui.step), t = st[i + (b.dataset.act === 'next' ? 1 : -1)]; if (t) { ui.step = t.id; paintStep(); window.scrollTo(0, 0); } return; }
+    case 'pdfM': case 'pdfD': {
+      if (!window.jspdf) return toast('No se cargó la librería de PDF. Revisa tu conexión.');
+      const E = e(), c = childOf(E.childId); b.disabled = true; const old = b.textContent; b.textContent = 'Generando…';
+      try { if (b.dataset.act === 'pdfM') await saveFile('Matriz_' + slug(c.name) + '_' + E.date + '.pdf', await makeMatrixPdf(E, c)); else { if (!window.Chart) throw new Error('Gráficos no disponibles'); await saveFile('Dashboard_' + slug(c.name) + '_' + E.date + '.pdf', await makeDashPdf(E, c)); } }
+      catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); }
+      b.disabled = false; b.textContent = old; return; }
+    case 'connect': return connectFolder();
+    case 'backup': return doBackup();
+    case 'import': return $('#impFile').click();
+    case 'xlsx': { if (!window.XLSX) return toast('No se cargó la librería de Excel. Revisa tu conexión.'); if (!db.evals.length) return toast('Aún no hay evaluaciones para exportar.'); return void saveFile('Evaluaciones_matriz_' + today() + '.xlsx', xlsxData()); }
+  }
+});
+document.addEventListener('change', ev => {
+  const t = ev.target;
+  if (t.id === 'impFile' && t.files[0]) { doImport(t.files[0]); t.value = ''; return; }
+  const E = db.evals.find(x => x.id === ui.evalId); if (!E || ui.view !== 'wiz') return;
+  if (t.matches('[data-yn]')) { E.ans[ui.step] = t.value; $('#behs').hidden = t.value !== 'si'; $('#ynHint').hidden = t.value !== 'no'; }
+  else if (t.matches('[data-b]')) { E.beh[t.dataset.b] = +t.value; }
+  else if (t.matches('[data-g]')) { E.gates[t.dataset.g] = t.value; }
+  else if (t.id === 'evDate') { E.date = t.value || today(); }
+  else if (t.id === 'evWho') { E.evaluator = t.value.trim(); db.evaluator = E.evaluator; }
+  else return;
+  E.updated = Date.now(); persist(); paintBar(); paintNav();
+});
+let txT;
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.id === 'q') { ui.q = t.value; return paintChildList(); }
+  if (t.matches('[data-c]')) { const E = db.evals.find(x => x.id === ui.evalId); if (!E) return; if (t.value) E.comments[t.dataset.c] = t.value; else delete E.comments[t.dataset.c]; E.updated = Date.now(); clearTimeout(txT); txT = setTimeout(persist, 400); }
+});
+render();
+initFolder();
+</script>
+
+</body></html>
