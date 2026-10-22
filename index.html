@@ -75,6 +75,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-size:.88rem;font-weight:
 .empty{border:1.5px dashed var(--line);border-radius:12px;padding:36px 20px;text-align:center;color:var(--muted)}
 .empty b{display:block;color:var(--ink);font-family:var(--f-display);font-size:1.2rem;margin-bottom:6px}
 .crumb{margin-bottom:12px}
+.crumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .row-actions{display:flex;flex-wrap:wrap;gap:6px}
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 table.ev{border-collapse:collapse;width:100%;min-width:760px}
@@ -145,7 +146,7 @@ details.cm textarea{margin-top:8px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
 .kpi{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface);border-left:8px solid var(--line)}
 .kpi b{display:block;font-family:var(--f-display);font-size:1.7rem;line-height:1.1;font-variant-numeric:tabular-nums}
-.kpi span{font-size:.85rem;color:var(--muted)}
+.kpi span{font-size:.85rem;color:var(--muted);overflow-wrap:anywhere}
 .kpi.k1{border-left-color:var(--m-emerg)}.kpi.k2{border-left-color:var(--m-dom)}.kpi.k3{border-left-color:var(--m-sup)}
 .mxscroll{overflow-x:auto;padding-bottom:8px}
 .mx{display:grid;grid-template-columns:150px repeat(17,minmax(50px,1fr));gap:4px;min-width:1060px}
@@ -164,6 +165,23 @@ details.cm textarea{margin-top:8px}
 .legend i{width:20px;height:20px;border:1px solid var(--m-line);border-radius:3px;display:inline-block}
 .site-foot{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:.85rem;line-height:1.35;padding:7px 16px calc(7px + env(safe-area-inset-bottom,0px))}
 .wrap{padding-bottom:96px!important}
+.mx button.lv{border:0;text-align:left;cursor:pointer;font:inherit;font-size:.72rem;color:#fff}
+.mx button.lv:hover{filter:brightness(1.18)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.78rem;font-weight:700;border:1px solid var(--m-line);white-space:nowrap}
+.dtabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.dtabs button{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);cursor:pointer;font-weight:600}
+.dtabs button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.dchart{position:relative;height:320px}
+details.help{background:var(--surface2);border-radius:10px;padding:10px 14px}
+details.help summary{cursor:pointer;font-weight:700;color:var(--accent)}
+details.help ul{margin:8px 0;padding-left:20px}
+.dl h3{margin:16px 0 6px}
+.dl ul{margin:6px 0;padding-left:20px}
+.dm-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);align-items:center}
+.dm-note{font-size:.88rem;color:var(--muted);font-style:italic;margin:2px 0 6px}
+.kpi small{font-size:.9rem;font-weight:600;color:var(--muted)}
+#modal .box.wide{max-width:640px}
+#modal .box{max-height:88vh;overflow:auto}
 /* Modal y aviso */
 #modal{position:fixed;inset:0;background:rgba(10,20,22,.55);display:grid;place-items:center;padding:20px;z-index:50}
 #modal[hidden],#toast[hidden]{display:none}
@@ -197,7 +215,8 @@ function ageText(dob, at) {
   if (b.getDate() < a.getDate()) m--;
   if (m < 0) return '';
   const y = Math.floor(m / 12), r = m % 12;
-  return (y ? y + (y === 1 ? ' año' : ' años') : '') + (y && r ? ' ' : '') + (r || !y ? r + (r === 1 ? ' mes' : ' meses') : '');
+  const ys = y + (y === 1 ? ' año' : ' años'), rs = r + (r === 1 ? ' mes' : ' meses');
+  return y && r ? ys + ' y ' + rs : y ? ys : rs;
 }
 
 /* ============ Almacenamiento local (con respaldo exportable) ============ */
@@ -443,14 +462,14 @@ const cellLabel = key => cellFun(key).short;
 /* ============ Evaluaciones: cálculo ============ */
 function newEval(childId, src) {
   const e = { id: uid(), childId, date: today(), evaluator: db.evaluator || '', created: Date.now(), updated: Date.now(),
-    ans: {}, beh: {}, comments: {}, gates: { g1: 'si', g3: 'si' }, ov: {} };
+    ans: {}, beh: {}, comments: {}, gates: { g1: 'si', g2: 'si', g3: 'si' }, ov: {} };
   if (src) { e.ans = Object.assign({}, src.ans); e.beh = Object.assign({}, src.beh); e.gates = Object.assign({}, src.gates); e.ov = Object.assign({}, src.ov); e.from = src.id; }
   db.evals.push(e); persist(); return e;
 }
 function stOf(ev, key) {
-  if (ev.ov && ev.ov[key] === 3) return 3;
   const f = cellFun(key), L = key.includes('@') ? +key.split('@')[1] : 0;
   if (f.kind === 'A') { if (ev.gates.g1 === 'superado') return 3; if (ev.gates.g1 !== 'si') return 0; }
+  if (f.kind === 'B') { const g = ev.gates.g2 || 'si'; if (g === 'superado') return 3; if (g !== 'si') return 0; }
   if (f.kind === 'C' && ev.gates.g3 !== 'si') return 0;
   if (ev.ans[f.id] !== 'si') return 0;
   let best = 0;
@@ -461,9 +480,45 @@ function stOf(ev, key) {
   return best;
 }
 function allCells(ev) { const out = []; ROWS.forEach(r => r.cells.forEach(c => out.push({ lvl: r.lvl, ...c, st: stOf(ev, c.key) }))); return out; }
-function applicable(ev) { return FUN.filter(f => !(f.kind === 'A' && ev.gates.g1 !== 'si') && !(f.kind === 'C' && ev.gates.g3 !== 'si')); }
+function applicable(ev) { return FUN.filter(f => !(f.kind === 'A' && ev.gates.g1 !== 'si') && !(f.kind === 'B' && (ev.gates.g2 || 'si') !== 'si') && !(f.kind === 'C' && ev.gates.g3 !== 'si')); }
 function progress(ev) { const a = applicable(ev), done = a.filter(f => ev.ans[f.id]).length; return { done, total: a.length, pct: a.length ? Math.round(done * 100 / a.length) : 100 }; }
 function counts(ev) { const c = [0,0,0,0]; allCells(ev).forEach(x => c[x.st]++); return c; }
+/* Razones para comunicarse sobre las 80 celdas: Rechazar 7, Obtener 31, Social 28, Información 14 */
+const AB_GRP = { A1: 'Rechazar', B1: 'Rechazar', A2: 'Obtener', B2: 'Obtener', B3: 'Obtener', A3: 'Social', B4: 'Social' };
+const grpOfCode = code => AB_GRP[code] || groupOf(+code.slice(1));
+const cellLevel = key => key.includes('@') ? +key.split('@')[1] : (key[0] === 'A' ? 1 : 2);
+function cellBehs(f, L) {
+  const out = [];
+  CAT_ORDER.filter(cat => f.cats[cat] && (f.kind !== 'C' || CAT_LVL[cat] === L)).forEach(cat => f.cats[cat].forEach((t, i) => out.push({ k: f.id + '|' + cat + '|' + i, t, cat })));
+  return out;
+}
+function cellPct(ev, key) {
+  const st = stOf(ev, key); if (st === 3) return 100;
+  const f = cellFun(key), bs = cellBehs(f, cellLevel(key));
+  if (ev.ans[f.id] !== 'si' || !bs.length) return 0;
+  return Math.round(100 * bs.reduce((a, b) => a + (ev.beh[b.k] || 0), 0) / (2 * bs.length));
+}
+function groupStats(ev) {
+  const cells = allCells(ev);
+  return GROUPS.map(g => { const cs = cells.filter(x => grpOfCode(x.code) === g.name), n = cs.length, d = cs.filter(x => x.st === 2).length, e = cs.filter(x => x.st === 1).length, s = cs.filter(x => x.st === 3).length;
+    return { name: g.name, total: n, dom: d, em: e, sup: s, pctDom: Math.round(100 * d / n), pctEm: Math.round(100 * e / n), pctSup: Math.round(100 * s / n) }; });
+}
+function scoreInfo(ev) {
+  const cells = allCells(ev);
+  const total = cells.reduce((a, x) => a + (x.st === 1 ? 1 : x.st >= 2 ? 2 : 0), 0);
+  const lv = [1,2,3,4,5,6,7].map(L => { const cs = cells.filter(x => x.lvl === L); return { L, n: cs.length, dom: cs.filter(x => x.st === 2).length, em: cs.filter(x => x.st === 1).length }; });
+  let primary = 0, best = 0; lv.forEach(o => { const p = o.dom / o.n; if (o.dom > 0 && p >= best) { best = p; primary = o.L; } });
+  const topStrict = Math.max(0, ...lv.filter(o => o.dom > 0).map(o => o.L)), topLoose = Math.max(0, ...lv.filter(o => o.dom + o.em > 0).map(o => o.L));
+  return { total, pct: Math.round(100 * total / 160), primary, topStrict, topLoose, lv, groups: groupStats(ev) };
+}
+const LVL_INFO = [null,
+  { d: 'El comportamiento no está bajo el control de la persona, pero refleja su estado general (cómodo, incómodo, con hambre o sueño). Quienes lo cuidan interpretan ese estado.', a: '0 a 3 meses' },
+  { d: 'Hay control sobre el comportamiento, pero todavía no se usa a propósito para comunicarse. Quienes lo cuidan interpretan sus necesidades y deseos a partir de lo que hace.', a: '3 a 8 meses' },
+  { d: 'Aquí comienza la comunicación intencional. Se usan conductas sin símbolos y no convencionales: movimientos del cuerpo, vocalizaciones, expresiones faciales y gestos simples, como jalar o tomar a la otra persona.', a: '6 a 12 meses' },
+  { d: 'Conductas sin símbolos, pero convencionales, aceptadas socialmente: señalar, asentir o negar con la cabeza, abrazar, mirar alternando entre la persona y el objeto, y algunas entonaciones. Requieren buena visión.', a: '12 a 18 meses' },
+  { d: 'Aquí comienza la comunicación simbólica. Símbolos concretos, que se parecen a lo que representan: imágenes, objetos, gestos icónicos y sonidos. Muchas personas pasan directo al nivel 6.', a: '12 a 24 meses' },
+  { d: 'Símbolos abstractos, que no se parecen a lo que representan: habla, lenguaje de señas, Braille o palabras impresas. Se usan de uno en uno.', a: '12 a 24 meses' },
+  { d: 'Se combinan dos o tres símbolos, concretos o abstractos, siguiendo reglas gramaticales. El orden de los símbolos cambia el significado.', a: 'cerca de los 24 meses' }];
 const childOf = id => db.children.find(c => c.id === id);
 const evalsOf = id => db.evals.filter(e => e.childId === id).sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.created - a.created));
 const firstName = c => (c && c.name ? c.name.trim().split(/\s+/)[0] : 'el niño o la niña');
@@ -473,13 +528,14 @@ const app = $('#app');
 let ui = { view: 'home', childId: null, evalId: null, step: null, q: '', formFor: null };
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3600); }
-function modal(html) { return new Promise(res => { const m = $('#modal'); m.innerHTML = '<div class="box" role="dialog" aria-modal="true">' + html + '</div>'; m.hidden = false;
+function modal(html, wide) { return new Promise(res => { const m = $('#modal'); m.innerHTML = '<div class="box' + (wide ? ' wide' : '') + '" role="dialog" aria-modal="true">' + html + '</div>'; m.hidden = false;
   const done = v => { m.hidden = true; m.innerHTML = ''; res(v); };
   m.querySelectorAll('[data-v]').forEach(b => b.onclick = () => done(b.dataset.v));
-  const first = m.querySelector('[data-v]'); if (first) first.focus(); }); }
+  const first = m.querySelector('[data-v]'); if (first) first.focus({ preventScroll: true }); const bx = m.querySelector('.box'); if (bx) bx.scrollTop = 0; }); }
 const ask = (msg, ok = 'Aceptar', danger = false) => modal('<p>' + msg + '</p><div class="acts"><button class="btn" data-v="no">Cancelar</button><button class="btn ' + (danger ? 'danger' : 'primary') + '" data-v="ok">' + ok + '</button></div>').then(v => v === 'ok');
 function go(v) { Object.assign(ui, v); window.scrollTo(0, 0); render(); }
-function render() { ({ home: renderHome, child: renderChild, wiz: renderWiz, res: renderRes }[ui.view])(); }
+let domChart = null, domLvl = 1;
+function render() { if (domChart) { domChart.destroy(); domChart = null; } ({ home: renderHome, child: renderChild, wiz: renderWiz, res: renderRes }[ui.view])(); }
 function paintSaved() {
   const s = $('#saved'); if (!s) return;
   const d = new Date(), hm = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
@@ -545,7 +601,7 @@ function paintChildList() {
     return `<li class="crow"><button class="citem" data-child="${c.id}">
       <span class="nm">${esc(c.name)}</span>
       <span>${last ? (p.pct === 100 ? '<span class="chip ok">Última evaluación completa</span>' : '<span class="chip">Última al ' + p.pct + '%</span>') : '<span class="chip">Sin evaluaciones</span>'}</span>
-      <span class="muted small">${[c.dx, evs.length + (evs.length === 1 ? ' evaluación' : ' evaluaciones'), last ? 'última: ' + fmtDate(last.date) : ''].filter(Boolean).map(esc).join(' · ')}</span>
+      <span class="muted small">${[c.dob && ageText(c.dob), c.dx, evs.length + (evs.length === 1 ? ' evaluación' : ' evaluaciones'), last ? 'última: ' + fmtDate(last.date) : ''].filter(Boolean).map(esc).join(' · ')}</span>
     </button><div class="row-actions"><button class="btn sm" data-act="editRow" data-cid="${c.id}">Editar</button><button class="btn sm danger" data-act="delChild" data-cid="${c.id}">Eliminar</button></div></li>`; }).join('') + '</ul>';
 }
 function showChildForm(c) {
@@ -554,15 +610,19 @@ function showChildForm(c) {
     <h2 style="margin-bottom:14px">${c ? 'Datos de ' + esc(c.name) : 'Nuevo niño o niña'}</h2>
     <div class="grid2">
       <label class="f">Nombre completo<input type="text" id="cfName" required value="${esc(c ? c.name : '')}"></label>
+      <label class="f">Fecha de nacimiento<input type="date" id="cfDob" max="${today()}" value="${esc(c && c.dob ? c.dob : '')}"></label>
       <label class="f">Diagnóstico<input type="text" id="cfDx" value="${esc(c ? c.dx : '')}"></label>
     </div>
+    <p class="muted small" id="cfAge" style="margin-top:10px"></p>
     <div class="foot-btns" style="margin-top:16px"><span>${c ? '<button type="button" class="btn danger" data-act="delChild" data-cid="' + c.id + '">Eliminar niño o niña</button>' : ''}</span>
       <span class="row-actions"><button type="button" class="btn" data-act="cancelForm">Cancelar</button><button class="btn primary" type="submit">Guardar</button></span></div></form>`;
+  const paintAge = () => { const t = ageText($('#cfDob').value); $('#cfAge').textContent = t ? 'Edad actual: ' + t : ''; };
+  $('#cfDob').oninput = paintAge; paintAge();
   $('#cfName').focus();
   $('#cform').onsubmit = e => {
     e.preventDefault();
     const name = $('#cfName').value.trim(); if (!name) return;
-    const vals = { name, dx: $('#cfDx').value.trim() };
+    const vals = { name, dx: $('#cfDx').value.trim(), dob: $('#cfDob').value || '' };
     if (c) { Object.assign(c, vals); persist(); ui.formFor = null; toast('Datos guardados'); render(); }
     else { const n = Object.assign({ id: uid(), created: Date.now() }, vals); db.children.push(n); persist(); ui.formFor = null; go({ view: 'child', childId: n.id }); }
   };
@@ -573,9 +633,9 @@ function renderChild() {
   const c = childOf(ui.childId); if (!c) return go({ view: 'home' });
   const evs = evalsOf(c.id);
   app.innerHTML = `
-  <button class="btn ghost sm crumb" data-act="home">← Todos los niños</button>
+  <div class="crumbs"><button class="btn ghost sm" data-act="home">⌂ Inicio</button></div>
   <header class="head">
-    <div><p class="eyebrow">${esc(c.dx ? 'Diagnóstico: ' + c.dx : 'Ficha')}</p><h1>${esc(c.name)}</h1></div>
+    <div><p class="eyebrow">${esc([c.dob ? 'Edad: ' + ageText(c.dob) + ' (nació el ' + fmtDate(c.dob) + ')' : '', c.dx ? 'Diagnóstico: ' + c.dx : ''].filter(Boolean).join(' · ') || 'Ficha')}</p><h1>${esc(c.name)}</h1>${c.dob ? '' : '<p class="muted small" style="margin-top:6px">Agrega la fecha de nacimiento con «Editar datos» para ver su edad.</p>'}</div>
     <div class="head-actions">
       <button class="btn" data-act="editChild">Editar datos</button>
       <button class="btn danger" data-act="delChild" data-cid="${c.id}">Eliminar</button>
@@ -586,7 +646,7 @@ function renderChild() {
   <div id="formSlot"></div>
   ${evs.length ? `<div class="tablewrap"><table class="ev"><thead><tr><th>Fecha</th><th>Evaluador/a</th><th>Avance</th><th>Celdas dominadas</th><th>Acciones</th></tr></thead><tbody>
   ${evs.map(e => { const p = progress(e), k = counts(e); return `<tr>
-    <td><b>${fmtDate(e.date)}</b></td>
+    <td><b>${fmtDate(e.date)}</b>${c.dob ? '<div class="muted small">Edad: ' + esc(ageText(c.dob, e.date)) + '</div>' : ''}</td>
     <td>${esc(e.evaluator) || '<span class="muted">—</span>'}</td>
     <td><div style="display:grid;gap:4px"><div class="bar"><i style="width:${p.pct}%"></i></div><span class="small muted">${p.done} de ${p.total} funciones${p.pct === 100 ? ' · completa' : ''}</span></div></td>
     <td><b style="font-variant-numeric:tabular-nums">${k[2]}</b> <span class="muted small">· ${k[1]} emergentes</span></td>
@@ -595,6 +655,7 @@ function renderChild() {
       <button class="btn sm" data-ev="${e.id}" data-act="openRes">Matriz</button>
       <button class="btn sm" data-ev="${e.id}" data-act="pdfM">PDF matriz</button>
       <button class="btn sm" data-ev="${e.id}" data-act="pdfD">PDF dashboard</button>
+      <button class="btn sm" data-ev="${e.id}" data-act="pdfS">PDF destrezas</button>
       <button class="btn sm" data-ev="${e.id}" data-act="fromEval">Nueva desde esta</button>
       <button class="btn sm danger" data-ev="${e.id}" data-act="delEval">Eliminar</button></div></td></tr>`; }).join('')}
   </tbody></table></div>` : '<div class="empty"><b>Todavía no hay evaluaciones</b>Usa «Nueva evaluación» para responder el cuestionario por etapas.</div>'}`;
@@ -605,7 +666,8 @@ function renderChild() {
 function stepList(ev) {
   const s = [{ id: 'g1', stage: 'Nivel 1' }];
   if (ev.gates.g1 === 'si') ['A1', 'A2', 'A3'].forEach(id => s.push({ id, stage: 'Nivel 1' }));
-  ['B1', 'B2', 'B3', 'B4'].forEach(id => s.push({ id, stage: 'Nivel 2' }));
+  s.push({ id: 'g2', stage: 'Nivel 2' });
+  if ((ev.gates.g2 || 'si') === 'si') ['B1', 'B2', 'B3', 'B4'].forEach(id => s.push({ id, stage: 'Nivel 2' }));
   s.push({ id: 'g3', stage: 'Niveles 3 a 7' });
   if (ev.gates.g3 === 'si') FUN.filter(f => f.kind === 'C').forEach(f => s.push({ id: f.id, stage: 'Niveles 3 a 7' }));
   return s;
@@ -617,12 +679,13 @@ function renderWiz() {
   const steps = stepList(ev); if (!ui.step || !steps.find(s => s.id === ui.step)) ui.step = steps[0].id;
   const p = progress(ev);
   app.innerHTML = `
-  <button class="btn ghost sm crumb" data-act="backToChild">← ${esc(c.name)}</button>
+  <div class="crumbs"><button class="btn ghost sm" data-act="home">⌂ Inicio</button><button class="btn ghost sm" data-act="backToChild">← ${esc(c.name)}</button></div>
   <div class="wz-head">
     <label class="f">Fecha de aplicación<input type="date" id="evDate" value="${esc(ev.date)}"></label>
     <label class="f">Evaluador/a<input type="text" id="evWho" value="${esc(ev.evaluator)}" placeholder="Nombre"></label>
     <div class="wz-prog"><div class="bar"><i id="pbar" style="width:${p.pct}%"></i></div><span class="small muted" id="ptxt">${p.done} de ${p.total} funciones respondidas</span></div>
     <span class="saved" id="saved"></span>
+    <button class="btn" data-act="guide">Guía</button>
     <button class="btn" data-act="toRes">Ver matriz</button>
   </div>
   <div class="wiz"><details class="nav" id="navd"><summary>Etapas del cuestionario</summary><div id="navbody"></div></details><main id="stepbox"></main></div>`;
@@ -635,7 +698,7 @@ function paintNav() {
     if (s.stage !== last) { h += '<div class="stg">' + s.stage + '</div>'; last = s.stage; }
     const f = FM[s.id]; let dot = 'dot', label;
     if (f) { if (ev.ans[f.id]) dot += ' done'; label = '<b>' + f.id + '</b> ' + esc(f.short); }
-    else { dot += ' done'; label = s.id === 'g1' ? 'Introducción al nivel 1' : 'Introducción a los niveles 3 a 7'; }
+    else { dot += ' done'; label = s.id === 'g1' ? 'Introducción al nivel 1' : s.id === 'g2' ? 'Introducción al nivel 2' : 'Introducción a los niveles 3 a 7'; }
     h += '<button data-step="' + s.id + '" class="' + (s.id === ui.step ? 'cur' : '') + '"><i class="' + dot + '"></i><span>' + label + '</span></button>';
   });
   $('#navbody').innerHTML = h;
@@ -645,7 +708,7 @@ function paintStep() {
   const ev = db.evals.find(e => e.id === ui.evalId), c = childOf(ev.childId), steps = stepList(ev);
   const i = steps.findIndex(s => s.id === ui.step), prev = steps[i - 1], next = steps[i + 1];
   let body;
-  if (ui.step === 'g1' || ui.step === 'g3') body = gateHtml(ev, c, ui.step);
+  if (ui.step === 'g1' || ui.step === 'g2' || ui.step === 'g3') body = gateHtml(ev, c, ui.step);
   else body = funHtml(ev, c, FM[ui.step]);
   $('#stepbox').innerHTML = '<section class="card">' + body + `
     <div class="foot-btns">
@@ -655,7 +718,7 @@ function paintStep() {
   paintNav(); paintBar();
 }
 function gateHtml(ev, c, g) {
-  const v = ev.gates[g], n = esc(firstName(c));
+  const v = ev.gates[g] || 'si', n = esc(firstName(c));
   const opt = (val, txt) => `<label><input type="radio" name="gate" data-g="${g}" value="${val}" ${v === val ? 'checked' : ''}><span>${txt}</span></label>`;
   if (g === 'g1') return `<div class="step-top"><span class="code">Nivel 1</span><span class="muted">Comportamiento preintencional</span></div>
     <h2>${n} no parece tener control sobre su cuerpo aún</h2>
@@ -663,6 +726,12 @@ function gateHtml(ev, c, g) {
     <p class="q" style="margin-top:16px"><b>¿Esto describe a ${n}?</b></p>
     <div class="gate-opts">${opt('si', 'Sí, esto lo/la describe. Responder las preguntas A1 a A3.')}${opt('supera', 'No: esta etapa supera la capacidad de ' + n + '.')}${opt('superado', 'No: ' + n + ' ya superó esta etapa.')}</div>
     <p class="muted small" style="margin-top:12px">Si eliges una de las dos últimas, se omiten A1 a A3. «Supera la capacidad» deja la fila en blanco; «ya superó» la pinta en gris (superado).</p>`;
+  if (g === 'g2') return `<div class="step-top"><span class="code">Nivel 2</span><span class="muted">Conducta intencional</span></div>
+    <h2>${n} tiene control sobre sus conductas, pero aún no las usa para comunicarse</h2>
+    <div class="gate-box"><p>Tiene control sobre sus comportamientos, pero no los usa para tratar de comunicarse conmigo. No viene hacia mí para hacerme saber lo que quiere, pero es fácil para mí imaginarlo, puesto que trata de hacer las cosas por sí mismo/a. Sabe lo que quiere y su comportamiento me muestra lo que quiere. Si se le acaba lo que está comiendo, intenta obtener más antes de intentar que yo le consiga más.</p></div>
+    <p class="q" style="margin-top:16px"><b>¿Esto describe a ${n}?</b></p>
+    <div class="gate-opts">${opt('si', 'Sí, esto lo/la describe. Responder las preguntas B1 a B4.')}${opt('supera', 'No: esta etapa supera la capacidad de ' + n + '.')}${opt('superado', 'No: ' + n + ' ya superó esta etapa.')}</div>
+    <p class="muted small" style="margin-top:12px">Si eliges una de las dos últimas, se omiten B1 a B4. «Supera la capacidad» deja la fila en blanco; «ya superó» la pinta en gris (superado).</p>`;
   return `<div class="step-top"><span class="code">Niveles 3 a 7</span><span class="muted">Funciones C1 a C17</span></div>
     <h2>${n} claramente trata de comunicar sus necesidades</h2>
     <div class="gate-box"><p>Sabe cómo hacer para conseguir que yo haga algo por él/ella. Usa varios comportamientos para comunicarse conmigo:</p>
@@ -693,41 +762,126 @@ function funHtml(ev, c, f) {
       <label><input type="radio" name="yn" data-yn value="si" ${a === 'si' ? 'checked' : ''}><span>Sí</span></label>
       <label><input type="radio" name="yn" data-yn value="no" ${a === 'no' ? 'checked' : ''}><span>No</span></label></div>
     <p class="muted small" id="ynHint" ${a === 'no' ? '' : 'hidden'}>Todas las conductas de esta función quedan registradas como «No se utiliza».</p>
-    <div class="behs" id="behs" ${a === 'si' ? '' : 'hidden'}><h3 class="sub">${nm(f.sub, c)}</h3>${catsHtml}</div>`;
+    <div class="behs" id="behs" ${a === 'si' ? '' : 'hidden'}><h3 class="sub">${nm(f.sub, c)}</h3>
+      <details class="help"><summary>¿Emergente o Dominado? Criterios</summary><ul>
+        <li><b>No se utiliza:</b> la conducta no aparece para comunicar este mensaje.</li>
+        <li><b>Emergente:</b> se usa de forma inconsistente, solo con indicaciones o estímulo, o solo en uno o dos contextos o con una sola persona. Ejemplo: saluda solo a su papá.</li>
+        <li><b>Dominado:</b> se usa de forma independiente, la mayor parte del tiempo cuando surge la oportunidad, en distintos contextos y con distintas personas. Ejemplo: saluda a familiares, amigos y también a personas poco conocidas.</li></ul>
+        <button type="button" class="btn sm" data-act="guide">Ver guía completa</button></details>${catsHtml}</div>`;
 }
 
 /* ============ Resultado ============ */
 function renderRes() {
   const ev = db.evals.find(e => e.id === ui.evalId), c = ev && childOf(ev.childId);
   if (!ev || !c) return go({ view: 'home' });
-  const k = counts(ev), p = progress(ev), cells = allCells(ev);
-  const topLvl = Math.max(0, ...cells.filter(x => x.st === 2).map(x => x.lvl));
-  let h = `<button class="btn ghost sm crumb" data-act="backToChild">← ${esc(c.name)}</button>
-  <header class="head"><div><p class="eyebrow">Matriz de comunicación · aplicada el ${fmtDate(ev.date)}${ev.evaluator ? ' · ' + esc(ev.evaluator) : ''}</p><h1>${esc(c.name)}</h1></div>
-  <div class="head-actions"><button class="btn" data-act="toWiz">Corregir respuestas</button></div></header>`;
+  const k = counts(ev), p = progress(ev), sc = scoreInfo(ev), pat = sc.groups.map(g => g.pctDom).join(':');
+  let h = `<div class="crumbs"><button class="btn ghost sm" data-act="home">⌂ Inicio</button><button class="btn ghost sm" data-act="backToChild">← ${esc(c.name)}</button></div>
+  <header class="head"><div><p class="eyebrow">Matriz de comunicación · aplicada el ${fmtDate(ev.date)}${ev.evaluator ? ' · ' + esc(ev.evaluator) : ''}${c.dob ? ' · Edad: ' + esc(ageText(c.dob, ev.date)) : ''}</p><h1>${esc(c.name)}</h1></div>
+  <div class="head-actions"><button class="btn" data-act="guide">Guía</button><button class="btn" data-act="toWiz">Corregir respuestas</button></div></header>`;
   if (p.pct < 100) h += `<div class="banner"><span><b>Faltan ${p.total - p.done} funciones por responder.</b> Mientras tanto aparecen como «No se utiliza».</span><button class="btn sm" data-act="toWiz">Continuar</button></div>`;
-  h += `<div class="res-actions"><button class="btn primary" data-act="pdfM">Descargar matriz (PDF)</button><button class="btn primary" data-act="pdfD">Descargar dashboard (PDF)</button></div>
+  h += `<div class="res-actions"><button class="btn primary" data-act="pdfM">Descargar matriz (PDF)</button><button class="btn primary" data-act="pdfD">Descargar dashboard (PDF)</button><button class="btn primary" data-act="pdfS">Descargar lista de destrezas (PDF)</button></div>
   <div class="legend">${ST.map((s, i) => '<span><i class="st' + i + '"></i>' + s + '</span>').join('')}</div>
   <div class="mxscroll"><div class="mx">`;
   ROWS.forEach((r, ri) => {
-    h += `<div class="lv" style="grid-row:${ri + 1}"><b>${LEVELS[r.lvl].n}</b>${LEVELS[r.lvl].t}</div>`;
+    h += `<button class="lv" data-lvl="${r.lvl}" style="grid-row:${ri + 1}" title="Ver descripción del nivel"><b>${LEVELS[r.lvl].n}</b>${LEVELS[r.lvl].t}</button>`;
     r.cells.forEach(cl => { const st = stOf(ev, cl.key); h += `<button class="cell st${st}" data-cell="${cl.key}" style="grid-row:${ri + 1};grid-column:${cl.c0 + 1}/${cl.c1 + 2}" title="${esc(cl.code + ' · ' + cellLabel(cl.key) + ' · ' + ST[st])}"><b>${cl.code}</b><span>${esc(cellLabel(cl.key))}</span></button>`; });
   });
   h += '<div class="lv" style="grid-row:8;background:transparent"></div>' + GROUPS.map(g => `<div class="grp" style="grid-row:8;grid-column:${g.c0 + 1}/${g.c1 + 2}">${g.name}</div>`).join('');
-  h += `</div></div><p class="muted small" style="margin-top:6px">Toca una celda para marcarla como «Superado» (gris) o volver al valor calculado.</p>
+  h += `</div></div><p class="muted small" style="margin-top:6px">Toca una celda para ver sus conductas y notas, o el nombre de un nivel para ver su descripción.</p>
   <div class="kpis"><div class="kpi k2"><b>${k[2]}</b><span>celdas dominadas</span></div><div class="kpi k1"><b>${k[1]}</b><span>celdas emergentes</span></div><div class="kpi k3"><b>${k[3]}</b><span>celdas superadas</span></div>
-  <div class="kpi"><b>${topLvl ? 'N' + topLvl : '—'}</b><span>nivel más alto con alguna celda dominada</span></div></div>`;
-  app.innerHTML = h;
+  <div class="kpi"><b>${sc.total} <small>/ 160</small></b><span>puntaje total (${sc.pct}%)</span></div>
+  <div class="kpi"><b>${sc.primary ? 'N' + sc.primary : '—'}</b><span>nivel primario: el de mayor % de celdas dominadas</span></div>
+  <div class="kpi"><b>${sc.topStrict ? 'N' + sc.topStrict : '—'}</b><span>nivel más alto con alguna celda dominada${sc.topLoose && sc.topLoose !== sc.topStrict ? ' (N' + sc.topLoose + ' contando emergentes)' : ''}</span></div>
+  <div class="kpi"><b style="font-size:1.25rem">${pat}</b><span>% de celdas dominadas: Rechazar : Obtener : Social : Información</span></div></div>
+  <details class="help" style="margin-bottom:18px"><summary>¿Cómo se calculan estos puntajes?</summary><ul>
+    <li><b>Puntaje total:</b> cada una de las 80 celdas vale 0 (no se utiliza), 1 (emergente) o 2 (dominada o superada). Máximo 160.</li>
+    <li><b>Nivel primario:</b> el nivel donde es mayor el porcentaje de celdas dominadas. Las celdas superadas no cuentan.</li>
+    <li><b>Patrón por razón:</b> porcentaje de celdas dominadas entre las de cada razón para comunicarse. Rechazar tiene 7 celdas, Obtener 31, Social 28 e Información 14.</li></ul></details>
+  <section class="card"><h2>Vista de dominio por nivel</h2>
+    <p class="muted small" style="margin-top:4px">Cada barra es una celda. Su altura es (2 × conductas dominadas + 1 × conductas emergentes) ÷ (2 × conductas posibles de esa celda).</p>
+    <div class="dtabs" id="domTabs">${LEVELS.slice(1).map((l, i) => `<button data-dom="${i + 1}">${l.n}</button>`).join('')}</div>
+    <div class="dchart" id="domBox"><canvas id="domCanvas"></canvas></div></section>`;
+  app.innerHTML = h; paintDomain(domLvl);
+}
+const pctPlugin = (fs, ink) => ({ id: 'pctLabels', afterDatasetsDraw(ch) { const x = ch.ctx; x.save(); x.font = 'bold ' + fs + 'px Helvetica, Arial, sans-serif'; x.textAlign = 'center'; x.fillStyle = ink;
+  ch.getDatasetMeta(0).data.forEach((bar, i) => x.fillText(ch.data.datasets[0].data[i] + '%', bar.x, bar.y - 4)); x.restore(); } });
+function domainCfg(ev, L, fs, ink, grid, title) {
+  const r = ROWS.find(x => x.lvl === L), sts = r.cells.map(cl => stOf(ev, cl.key)), COL = ['#e3e3e3', '#fde37f', '#fba97d', '#bdbdbd'], pf = r.cells.length > 12 ? fs - 5 : fs;
+  return { type: 'bar', plugins: [pctPlugin(pf, ink)],
+    data: { labels: r.cells.map(cl => cl.code), datasets: [{ data: r.cells.map(cl => cellPct(ev, cl.key)), backgroundColor: sts.map(x => COL[x]), borderColor: '#555', borderWidth: 1 }] },
+    options: { layout: { padding: { top: 2 } }, plugins: { legend: { display: false }, title: title ? { display: true, text: title, color: ink, padding: { top: 0, bottom: pf + 12 }, font: { size: fs + 2, weight: 'bold' } } : { display: false }, tooltip: { callbacks: { label: c => c.parsed.y + '% · ' + ST[sts[c.dataIndex]] } } },
+      scales: { y: { min: 0, max: 100, ticks: { stepSize: 25, callback: v => v + '%', color: ink, font: { size: fs } }, grid: { color: grid } }, x: { ticks: { color: ink, font: { size: fs } }, grid: { display: false } } } } };
+}
+function paintDomain(L) {
+  const box = $('#domBox'); if (!box) return;
+  if (!window.Chart) { box.style.height = 'auto'; box.innerHTML = '<p class="muted small">Los gráficos necesitan conexión a internet para cargar su librería.</p>'; return; }
+  const ev = db.evals.find(e => e.id === ui.evalId); if (!ev) return;
+  domLvl = L; document.querySelectorAll('#domTabs button').forEach(b => b.classList.toggle('on', +b.dataset.dom === L));
+  if (domChart) { domChart.destroy(); domChart = null; }
+  const cs = getComputedStyle(document.documentElement), cfg = domainCfg(ev, L, 13, cs.getPropertyValue('--ink').trim() || '#222', cs.getPropertyValue('--line').trim() || '#ddd', LEVELS[L].n + ' · ' + LEVELS[L].t);
+  cfg.options.responsive = true; cfg.options.maintainAspectRatio = false; cfg.options.animation = false;
+  domChart = new Chart($('#domCanvas').getContext('2d'), cfg);
+}
+function pill(v) { return '<span class="pill st' + v + '">' + ST[v] + '</span>'; }
+async function showCell(ev, key) {
+  const f = cellFun(key), L = cellLevel(key), st = stOf(ev, key), c = childOf(ev.childId);
+  const gated = (f.kind === 'A' && ev.gates.g1 !== 'si') || (f.kind === 'B' && (ev.gates.g2 || 'si') !== 'si') || (f.kind === 'C' && ev.gates.g3 !== 'si');
+  let body = '';
+  if (f.kind === 'A' && ev.gates.g1 === 'superado') body = '<p>El nivel 1 se marcó como superado.</p>';
+  else if (f.kind === 'B' && ev.gates.g2 === 'superado') body = '<p>El nivel 2 se marcó como superado.</p>';
+  else if (gated) body = '<p>Esta etapa se omitió, por lo que la celda queda en blanco.</p>';
+  else if (!ev.ans[f.id]) body = '<p>Esta función aún no se responde.</p>';
+  else if (ev.ans[f.id] === 'no') body = '<p>Se respondió «No»: ninguna conducta de esta función se utiliza.</p>';
+  else {
+    const bs = cellBehs(f, L), cats = [...new Set(bs.map(b => b.cat))];
+    body = cats.map(cat => '<h3 style="margin-top:14px">' + esc(CATS[cat]) + '</h3>' + bs.filter(b => b.cat === cat).map(b => '<div class="dm-row"><span>' + esc(b.t) + '</span>' + pill(ev.beh[b.k] || 0) + '</div>').join('') + (ev.comments[f.id + '|' + cat] ? '<p class="dm-note">Nota: ' + esc(ev.comments[f.id + '|' + cat]) + '</p>' : '')).join('');
+  }
+  const canGo = !gated && stepList(ev).some(x => x.id === f.id);
+  const r = await modal('<div><span class="code">' + f.id + '</span> <span class="muted">' + LEVELS[L].n + ' · ' + LEVELS[L].t + '</span></div><h2>' + esc(f.short) + '</h2><p class="muted small">' + nm(f.q, c) + '</p><p>' + pill(st) + '</p>' + body +
+    '<div class="acts">' + (canGo ? '<button class="btn" data-v="go">Ir a esta pregunta</button>' : '') + '<button class="btn primary" data-v="no">Cerrar</button></div>', true);
+  if (r === 'go') go({ view: 'wiz', step: f.id });
+}
+function showLevel(L) {
+  const i = LVL_INFO[L];
+  modal('<div><span class="code">' + LEVELS[L].n + '</span></div><h2>' + LEVELS[L].t + '</h2><p>' + esc(i.d) + '</p><p class="muted small">Edad típica en el desarrollo habitual: ' + i.a + '.</p><div class="acts"><button class="btn primary" data-v="no">Cerrar</button></div>');
+}
+function showGuide() {
+  modal(`<h2>Guía para evaluar</h2><div class="dl">
+  <h3>¿Es comunicación intencional?</h3>
+  <p class="small muted">Es la decisión clave para pasar al nivel 3. Suponer intención donde no la hay sube el resultado; no verla donde sí está, lo baja.</p>
+  <ul><li>Solo hace la conducta cuando hay otra persona presente (salvo las vocalizaciones pensadas para llamar a alguien que está lejos).</li>
+  <li>Dirige la conducta hacia la otra persona: la mira, la toca o se orienta hacia ella.</li>
+  <li>Espera la respuesta y deja de hacerlo cuando la obtiene.</li>
+  <li>Insiste, o lo intenta de otra forma, si no le responden.</li>
+  <li>Si se le da algo distinto de lo que pidió, muestra que algo no está bien. Puedes probarlo a propósito.</li></ul>
+  <h3>¿Entiende los símbolos que usa?</h3>
+  <ul><li>Usa cada símbolo solo cuando corresponde. No sigue señalando «comer» cuando ya está satisfecho.</li>
+  <li>No va probando al azar un repertorio pequeño hasta que alguien responde.</li>
+  <li>Si se le responde mal, muestra sorpresa o frustración. Por ejemplo, pide música y le dan un libro.</li>
+  <li>Emitir sonidos parecidos al habla, mover la mano como si hiciera una seña o señalar una imagen no siempre significa que entienda el símbolo.</li></ul>
+  <h3>Dispositivos de comunicación con voz</h3>
+  <p>Se registra el sistema de símbolos que contiene el dispositivo (la imagen o la etiqueta escrita de cada mensaje), no la forma de acceder a él.</p>
+  <h3>Interruptores</h3>
+  <p>Si el interruptor se usa para un solo mensaje, como llamar, se puntúa la conducta con que se activa: un gesto simple, un movimiento del cuerpo o la mirada. Si se usa para otros fines, como aprender causa y efecto, no se puntúa.</p>
+  <h3>Emergente y Dominado</h3>
+  <ul><li><b>Emergente:</b> inconsistente, con indicaciones, o solo en uno o dos contextos o con una sola persona.</li>
+  <li><b>Dominado:</b> independiente, la mayor parte del tiempo cuando surge la oportunidad, en distintos contextos y con distintas personas.</li></ul>
+  <p class="small muted" style="margin-top:14px">Resumen propio basado en el manual de la Matriz de Comunicación (Charity Rowland).</p></div>
+  <div class="acts"><button class="btn primary" data-v="no">Cerrar</button></div>`, true);
 }
 
 /* ============ PDF de la matriz (dibujada en vectores) ============ */
 const RGB = [[255,255,255], [253,227,127], [251,169,125], [207,207,207]];
 function fitText(doc, text, w, fs) { doc.setFontSize(fs); return doc.splitTextToSize(text, w); }
+function ageAfterName(doc, c, ev, x, y) {
+  if (!c.dob) return; const t = ageText(c.dob, ev.date); if (!t) return;
+  const w = doc.getTextWidth(c.name); doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.text('·  Edad: ' + t, x + w + 3, y);
+}
 function drawMatrixPDF(doc, ev, c) {
   const PW = 297, M = 10, labW = 25, gx = 1.2, gy = 1.6;
   const cw = (PW - 2 * M - labW - gx - 16 * gx) / 17, colX = n => M + labW + gx + (n - 1) * (cw + gx);
   const rowH = [17, 17, 21, 21, 24, 24, 24];
-  doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(c.name, M, 11);
+  doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(c.name, M, 11); ageAfterName(doc, c, ev, M, 11);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
   doc.text('Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? '    Evaluador/a: ' + ev.evaluator : '') + (c.dx ? '    Diagnóstico: ' + c.dx : ''), M, 16.5);
   doc.setDrawColor(95); doc.setLineWidth(0.15);
@@ -786,29 +940,33 @@ async function makeDashPdf(ev, c) {
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const PW = 210, M = 14, CW = PW - 2 * M, cells = allCells(ev), k = counts(ev);
   const foot = () => { doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120); doc.text('Basado en la Communication Matrix (Charity Rowland). Resultados orientativos; no reemplazan el juicio profesional.', M, 290); };
-  const topLvl = Math.max(0, ...cells.filter(x => x.st === 2).map(x => x.lvl));
+  const sc = scoreInfo(ev), gsx = sc.groups;
   /* Página 1 */
   doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('Dashboard de comunicación', M, 17);
-  doc.setFontSize(13); doc.text(c.name, M, 25); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.setFontSize(13); doc.text(c.name, M, 25); ageAfterName(doc, c, ev, M, 25); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
   doc.text('Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? '   ·   Evaluador/a: ' + ev.evaluator : '') + (c.dx ? '   ·   Diagnóstico: ' + c.dx : ''), M, 31);
   const kp = [['Dominadas', k[2], 2], ['Emergentes', k[1], 1], ['Superadas', k[3], 3], ['No se utilizan', k[0], 0]];
   const bw = (CW - 9) / 4; kp.forEach((q, i) => { const x = M + i * (bw + 3); doc.setFillColor(...RGB[q[2]]); doc.setDrawColor(150); doc.rect(x, 36, bw, 17, 'FD'); doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.text(String(q[1]), x + 4, 46.5); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.text(q[0] + ' (de 80 celdas)', x + 4, 51); });
-  doc.setFontSize(9.5); doc.text('Nivel más alto con alguna celda dominada: ' + (topLvl ? LEVELS[topLvl].n + ' · ' + LEVELS[topLvl].t : 'ninguno'), M, 60);
-  const ls = lvlStats(ev);
+  const kp2 = [['Puntaje total', sc.total + ' / 160 · ' + sc.pct + '%', 'celda: 0 / 1 emerg. / 2 domin.'],
+    ['Nivel primario', sc.primary ? LEVELS[sc.primary].n : '—', 'mayor % de celdas dominadas'],
+    ['Nivel más alto', sc.topStrict ? LEVELS[sc.topStrict].n : '—', 'con celda dominada' + (sc.topLoose && sc.topLoose !== sc.topStrict ? ' (' + LEVELS[sc.topLoose].n + ' con emerg.)' : '')],
+    ['Patrón por razón (%)', gsx.map(g => g.pctDom).join(' : '), 'Rech : Obt : Soc : Info']];
+  kp2.forEach((q, i) => { const x = M + i * (bw + 3); doc.setFillColor(243, 246, 245); doc.setDrawColor(150); doc.rect(x, 56, bw, 17, 'FD'); doc.setTextColor(90); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.text(q[0], x + 3, 60.5);
+    doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.text(q[1], x + 3, 66.5); doc.setTextColor(90); doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.text(q[2], x + 3, 71); });
+  const ls = lvlStats(ev), y0 = 78;
   const img1 = chartImg({ type: 'bar', data: { labels: LEVELS.slice(1).map(l => [l.n, l.t.length > 20 ? l.t.slice(0, 18) + '…' : l.t]), datasets: [
     { label: 'Dominado', data: ls.map(o => o[2]), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
     { label: 'Emergente', data: ls.map(o => o[1]), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 },
     { label: 'Superado', data: ls.map(o => o[3]), backgroundColor: CHART_COL[3], borderColor: '#555', borderWidth: 1 },
     { label: 'No se utiliza', data: ls.map(o => o[0]), backgroundColor: '#f0f0f0', borderColor: '#999', borderWidth: 1 }] },
     options: { plugins: { title: { display: true, text: 'Celdas por nivel de comunicación', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 2, precision: 0 }, title: { display: true, text: 'Celdas' } } } } });
-  doc.addImage(img1, 'PNG', M, 64, CW, CW * 380 / 900);
-  const gs = GROUPS.map(g => { let tot = 0, d = 0, e = 0, s = 0; cells.forEach(x => { if (x.lvl >= 3 && x.code[0] === 'C') { const n = +x.code.slice(1); if (n >= g.c0 && n <= g.c1) { tot++; if (x.st === 2) d++; else if (x.st === 1) e++; else if (x.st === 3) s++; } } }); return { g, tot, d, e, s }; });
-  const img2 = chartImg({ type: 'bar', data: { labels: gs.map(o => o.g.name + ' (' + o.tot + ' celdas)'), datasets: [
-    { label: 'Dominado', data: gs.map(o => Math.round(o.d * 100 / o.tot)), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
-    { label: 'Emergente', data: gs.map(o => Math.round(o.e * 100 / o.tot)), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 },
-    { label: 'Superado', data: gs.map(o => Math.round(o.s * 100 / o.tot)), backgroundColor: CHART_COL[3], borderColor: '#555', borderWidth: 1 }] },
-    options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Por tipo de función (niveles 3 a 7), % de celdas', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { stacked: true, min: 0, max: 100, title: { display: true, text: '% de celdas' } }, y: { stacked: true } } } }, 900, 330);
-  doc.addImage(img2, 'PNG', M, 64 + CW * 380 / 900 + 4, CW, CW * 330 / 900);
+  doc.addImage(img1, 'PNG', M, y0, CW, CW * 380 / 900);
+  const img2 = chartImg({ type: 'bar', data: { labels: gsx.map(o => o.name + ' (' + o.total + ' celdas)'), datasets: [
+    { label: 'Dominado', data: gsx.map(o => o.pctDom), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
+    { label: 'Emergente', data: gsx.map(o => o.pctEm), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 },
+    { label: 'Superado', data: gsx.map(o => o.pctSup), backgroundColor: CHART_COL[3], borderColor: '#555', borderWidth: 1 }] },
+    options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Por razón para comunicarse (80 celdas), % de celdas', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { stacked: true, min: 0, max: 100, title: { display: true, text: '% de celdas' } }, y: { stacked: true } } } }, 900, 330);
+  doc.addImage(img2, 'PNG', M, y0 + CW * 380 / 900 + 4, CW, CW * 330 / 900);
   foot();
   /* Página 2 */
   doc.addPage(); const pr = funProfile(ev).filter(x => x.f.kind === 'C');
@@ -827,9 +985,22 @@ async function makeDashPdf(ev, c) {
     doc.addImage(img4, 'PNG', M, y, CW, CW * 300 / 900); y += CW * 300 / 900 + 4;
   }
   foot();
+  /* Vista de dominio por nivel */
+  doc.addPage(); doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('Vista de dominio por nivel', M, 18);
+  const cw2 = (CW - 6) / 2, ch2 = cw2 * 420 / 800, yy = 26;
+  for (let L = 1; L <= 7; L++) {
+    const img = chartImg(domainCfg(ev, L, 20, '#222', '#dddddd', LEVELS[L].n + ' · ' + LEVELS[L].t), 800, 420);
+    doc.addImage(img, 'PNG', M + ((L - 1) % 2) * (cw2 + 6), yy + Math.floor((L - 1) / 2) * (ch2 + 4), cw2, ch2);
+  }
+  const tx = M + cw2 + 6, ty = yy + 3 * (ch2 + 4) + 3;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text('Cómo leer estos gráficos', tx, ty);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+  doc.text(doc.splitTextToSize('Cada barra es una celda de la matriz. Su altura es (2 × conductas dominadas + 1 × conductas emergentes) ÷ (2 × conductas posibles de esa celda). El color indica el estado de la celda, que es el mayor entre sus conductas.', cw2), tx, ty + 4.5, { lineHeightFactor: 1.25 });
+  ST.forEach((n, i) => { doc.setFillColor(...(i === 0 ? [227, 227, 227] : RGB[i])); doc.setDrawColor(95); doc.rect(tx + i * 21, ty + 24, 3.5, 3.5, 'FD'); doc.text(n === 'No se utiliza' ? 'No se util.' : n, tx + i * 21 + 5, ty + 27); });
+  foot();
   /* Página 3: resumen de funciones y observaciones */
   doc.addPage(); y = 18; doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('Resumen por función y observaciones', M, y); y += 7;
-  const colx = [M, M + 62, M + 92, M + 122]; const head = () => { doc.setFillColor(112, 119, 119); doc.rect(M, y, CW, 6.5, 'F'); doc.setTextColor(255); doc.setFontSize(8); doc.text('Función', colx[0] + 2, y + 4.4); doc.text('Mayor nivel dominado', colx[1] + 1, y + 4.4); doc.text('Mayor nivel emergente', colx[2] + 1, y + 4.4); doc.text('Observaciones', colx[3] + 1, y + 4.4); y += 6.5; };
+  const colx = [M, M + 62, M + 92, M + 122]; const head = () => { doc.setFillColor(112, 119, 119); doc.rect(M, y, CW, 6.5, 'F'); doc.setTextColor(255); doc.setFontSize(8); doc.text('Función', colx[0] + 2, y + 4.4); doc.text('Nivel dominado', colx[1] + 1, y + 4.4); doc.text('Nivel emergente', colx[2] + 1, y + 4.4); doc.text('Observaciones', colx[3] + 1, y + 4.4); y += 6.5; };
   head();
   funProfile(ev).forEach(x => {
     const f = x.f, cm = Object.keys(f.cats).filter(cat => ev.comments[f.id + '|' + cat]).map(cat => CATS[cat] + ': ' + ev.comments[f.id + '|' + cat]).join(' / ');
@@ -838,12 +1009,53 @@ async function makeDashPdf(ev, c) {
     if (y + h > 280) { foot(); doc.addPage(); y = 16; head(); }
     doc.setDrawColor(200); doc.line(M, y + h, M + CW, y + h);
     doc.setTextColor(25); doc.setFont('helvetica', 'normal'); doc.text(nameL, colx[0] + 2, y + 4.3);
-    const lvTxt = v => v ? LEVELS[v].n + ' · ' + LEVELS[v].t.split(' ')[0] : '—';
+    const lvTxt = v => v ? LEVELS[v].n : '—';
     doc.text(lvTxt(x.dom), colx[1] + 1, y + 4.3); doc.text(lvTxt(x.em), colx[2] + 1, y + 4.3); doc.text(cl, colx[3] + 1, y + 4.3);
     y += h;
   });
   foot();
   return doc.output('arraybuffer');
+}
+
+/* ============ PDF: lista de destrezas comunicativas ============ */
+async function makeSkillsPdf(ev, c) {
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const M = 14, CW = 182, xCat = M + 2, xBeh = M + 50, xSt = M + CW - 27;
+  const foot = () => { doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120); doc.text('Basado en la Communication Matrix (Charity Rowland). Resultados orientativos; no reemplazan el juicio profesional.', M, 290); };
+  let y = 17; const need = h => { if (y + h > 282) { foot(); doc.addPage(); y = 16; } };
+  doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.text('Lista de destrezas comunicativas', M, y); y += 7;
+  doc.setFontSize(12); doc.text(c.name, M, y); ageAfterName(doc, c, ev, M, y); y += 5.5; doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+  doc.text('Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? '   ·   Evaluador/a: ' + ev.evaluator : '') + (c.dx ? '   ·   Diagnóstico: ' + c.dx : ''), M, y); y += 7;
+  const none = []; let any = false;
+  FUN.forEach(f => {
+    const gated = (f.kind === 'A' && ev.gates.g1 !== 'si') || (f.kind === 'B' && (ev.gates.g2 || 'si') !== 'si') || (f.kind === 'C' && ev.gates.g3 !== 'si');
+    if (gated || ev.ans[f.id] !== 'si') { if (!gated) none.push(f.id); return; }
+    const levels = f.kind === 'A' ? [1] : f.kind === 'B' ? [2] : [3, 4, 5, 6, 7], groups = [];
+    levels.forEach(L => {
+      const rows = cellBehs(f, L).filter(b => (ev.beh[b.k] || 0) > 0).map(b => ({ cat: b.cat, t: b.t, v: ev.beh[b.k] }));
+      const notes = [...new Set(cellBehs(f, L).map(b => b.cat))].filter(cat => ev.comments[f.id + '|' + cat]).map(cat => CATS[cat] + ': ' + ev.comments[f.id + '|' + cat]);
+      if (rows.length || notes.length) groups.push({ L, rows, notes });
+    });
+    if (!groups.length) { none.push(f.id); return; }
+    any = true; need(28);
+    doc.setFillColor(112, 119, 119); doc.rect(M, y, CW, 6.5, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.text(f.id + '. ' + f.short, M + 2, y + 4.5); y += 8;
+    groups.forEach(g => {
+      need(12); doc.setTextColor(70); doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text(LEVELS[g.L].n + ' · ' + LEVELS[g.L].t, M + 1, y + 2.5); y += 4.5;
+      g.rows.forEach(r => {
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+        const bl = doc.splitTextToSize(r.t, xSt - xBeh - 3), cl = doc.splitTextToSize(CATS[r.cat], xBeh - xCat - 3), h = Math.max(5.2, Math.max(bl.length, cl.length) * 3.5 + 1.8);
+        need(h); doc.setTextColor(25); doc.text(cl, xCat, y + 3.4); doc.text(bl, xBeh, y + 3.4);
+        doc.setFillColor(...RGB[r.v]); doc.setDrawColor(120); doc.rect(xSt, y + 0.6, 25, 4.4, 'FD'); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text(ST[r.v], xSt + 12.5, y + 3.7, { align: 'center' });
+        doc.setDrawColor(215); doc.line(M, y + h, M + CW, y + h); y += h;
+      });
+      g.notes.forEach(n => { doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(80); const l = doc.splitTextToSize('Nota — ' + n, CW - 4); need(l.length * 3.3 + 1.5); doc.text(l, M + 2, y + 3.2); y += l.length * 3.3 + 1.5; });
+      y += 1.5;
+    });
+    y += 3;
+  });
+  if (!any) { doc.setTextColor(25); doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.text('Aún no hay conductas emergentes o dominadas registradas.', M, y); y += 8; }
+  if (none.length) { need(14); doc.setTextColor(90); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); const l = doc.splitTextToSize('Funciones sin conductas registradas: ' + none.join(', ') + '.', CW); doc.text(l, M, y + 3); y += l.length * 3.5 + 3; }
+  foot(); return doc.output('arraybuffer');
 }
 
 /* ============ Exportar / respaldo ============ */
@@ -862,7 +1074,10 @@ function xlsxData() {
   const s1 = XLSX.utils.aoa_to_sheet(m), s2 = XLSX.utils.aoa_to_sheet(d);
   s1['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 20 }, { wch: 9 }].concat(keys.map(() => ({ wch: 13 }))); s2['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 20 }, { wch: 8 }, { wch: 30 }, { wch: 30 }, { wch: 60 }, { wch: 14 }, { wch: 40 }];
   s1['!freeze'] = { xSplit: 2, ySplit: 1 };
-  XLSX.utils.book_append_sheet(wb, s1, 'Matriz por evaluación'); XLSX.utils.book_append_sheet(wb, s2, 'Detalle de conductas');
+  const pj = [['Niño/a', 'Fecha de aplicación', 'Fecha de nacimiento', 'Edad en la aplicación', 'Puntaje total', 'Máximo', '% del máximo', 'Nivel primario', 'Nivel más alto (dominado)', 'Nivel más alto (con emergentes)', 'Rechazar % dominadas', 'Obtener % dominadas', 'Social % dominadas', 'Información % dominadas']];
+  sorted.forEach(e => { const c = childOf(e.childId); if (!c) return; const sc = scoreInfo(e); pj.push([c.name, e.date, c.dob || '', c.dob ? ageText(c.dob, e.date) : '', sc.total, 160, sc.pct, sc.primary || '', sc.topStrict || '', sc.topLoose || ''].concat(sc.groups.map(g => g.pctDom))); });
+  const s3 = XLSX.utils.aoa_to_sheet(pj); s3['!cols'] = [{ wch: 28 }, { wch: 14 }, { wch: 16 }, { wch: 22 }].concat(Array(10).fill({ wch: 16 }));
+  XLSX.utils.book_append_sheet(wb, s1, 'Matriz por evaluación'); XLSX.utils.book_append_sheet(wb, s2, 'Detalle de conductas'); XLSX.utils.book_append_sheet(wb, s3, 'Puntajes');
   return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
 }
 async function doBackup() { const ok = await saveFile('respaldo_matrices_' + today() + '.json', JSON.stringify(db, null, 1)); if (ok) { db.lastBackup = Date.now(); persist(); if (ui.view === 'home') render(); } }
@@ -878,11 +1093,13 @@ async function doImport(file) {
 
 /* ============ Eventos ============ */
 document.addEventListener('click', async ev => {
-  const b = ev.target.closest('[data-act],[data-child],[data-step],[data-cell]'); if (!b) return;
+  const b = ev.target.closest('[data-act],[data-child],[data-step],[data-cell],[data-lvl],[data-dom]'); if (!b) return;
   const e = () => db.evals.find(x => x.id === (b.dataset.ev || ui.evalId));
   if (b.dataset.child) return go({ view: 'child', childId: b.dataset.child, formFor: null });
   if (b.dataset.step) { ui.step = b.dataset.step; paintStep(); const nd = $('#navd'); if (nd && !window.matchMedia('(min-width:901px)').matches) nd.open = false; return window.scrollTo(0, 0); }
-  if (b.dataset.cell) { const E = e(); if (!E) return; E.ov = E.ov || {}; if (E.ov[b.dataset.cell] === 3) delete E.ov[b.dataset.cell]; else E.ov[b.dataset.cell] = 3; E.updated = Date.now(); persist(); return renderRes(); }
+  if (b.dataset.cell) { const E = e(); if (E) showCell(E, b.dataset.cell); return; }
+  if (b.dataset.lvl) return showLevel(+b.dataset.lvl);
+  if (b.dataset.dom) return paintDomain(+b.dataset.dom);
   switch (b.dataset.act) {
     case 'home': return go({ view: 'home', formFor: null });
     case 'backToChild': return go({ view: 'child', formFor: null });
@@ -900,12 +1117,13 @@ document.addEventListener('click', async ev => {
     case 'toWiz': return go({ view: 'wiz', step: null });
     case 'delEval': { const E = e(); if (await ask('¿Eliminar la evaluación del <b>' + fmtDate(E.date) + '</b>? No se puede deshacer.', 'Sí, eliminar', true)) { db.evals = db.evals.filter(x => x.id !== E.id); persist(); toast('Evaluación eliminada'); render(); } return; }
     case 'prev': case 'next': { const E = e(), st = stepList(E), i = st.findIndex(s => s.id === ui.step), t = st[i + (b.dataset.act === 'next' ? 1 : -1)]; if (t) { ui.step = t.id; paintStep(); window.scrollTo(0, 0); } return; }
-    case 'pdfM': case 'pdfD': {
+    case 'pdfM': case 'pdfD': case 'pdfS': {
       if (!window.jspdf) return toast('No se cargó la librería de PDF. Revisa tu conexión.');
       const E = e(), c = childOf(E.childId); b.disabled = true; const old = b.textContent; b.textContent = 'Generando…';
-      try { if (b.dataset.act === 'pdfM') await saveFile('Matriz_' + slug(c.name) + '_' + E.date + '.pdf', await makeMatrixPdf(E, c)); else { if (!window.Chart) throw new Error('Gráficos no disponibles'); await saveFile('Dashboard_' + slug(c.name) + '_' + E.date + '.pdf', await makeDashPdf(E, c)); } }
+      try { if (b.dataset.act === 'pdfM') await saveFile('Matriz_' + slug(c.name) + '_' + E.date + '.pdf', await makeMatrixPdf(E, c)); else if (b.dataset.act === 'pdfS') await saveFile('Destrezas_' + slug(c.name) + '_' + E.date + '.pdf', await makeSkillsPdf(E, c)); else { if (!window.Chart) throw new Error('Gráficos no disponibles'); await saveFile('Dashboard_' + slug(c.name) + '_' + E.date + '.pdf', await makeDashPdf(E, c)); } }
       catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); }
       b.disabled = false; b.textContent = old; return; }
+    case 'guide': return showGuide();
     case 'connect': return connectFolder(false);
     case 'changeFolder': return connectFolder(true);
     case 'backup': return doBackup();
