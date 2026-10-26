@@ -179,6 +179,36 @@ details.help ul{margin:8px 0;padding-left:20px}
 .dl ul{margin:6px 0;padding-left:20px}
 .dm-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);align-items:center}
 .nt{color:#b00020;font-weight:700}
+.dsh{display:flex;flex-direction:column;gap:18px}
+.dg{display:flex;flex-wrap:wrap;gap:18px}
+.dc{flex:1 1 300px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.dc h2{margin:0;font-size:1.05rem}
+.dc .eb{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.ins{flex:1 1 240px;display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.ins i{width:8px;height:34px;border-radius:5px;flex:none}
+.ins small{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.dbar{display:flex;height:100%;border-radius:8px;overflow:hidden;background:var(--surface2)}
+.lvrow{display:flex;align-items:center;gap:12px}
+.lvrow .nm{flex:none;width:136px;font-size:.88rem;line-height:1.2}
+.lvrow .nm small{display:block;color:var(--muted)}
+.lvrow .bx{flex:1;min-width:0;height:26px}
+.lvrow .vl{flex:none;width:68px;text-align:right;font-weight:700;font-size:.88rem}
+.heat{overflow-x:auto}
+.heat .hg{min-width:860px;display:grid;grid-template-columns:116px repeat(17,minmax(0,1fr));gap:3px}
+.hc{border:0;border-radius:7px;min-height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#14262a;cursor:pointer;padding:2px;font-family:inherit}
+.hc b{font-size:.62rem;opacity:.75}.hc span{font-size:.8rem;font-weight:700}
+.hl{display:flex;flex-direction:column;justify-content:center;font-size:.8rem;padding-right:6px;line-height:1.2}
+.hl small{color:var(--muted);font-size:.7rem}
+.hn{text-align:center;font-size:.7rem;font-weight:700;color:var(--muted)}
+.zrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer;width:100%;text-align:left;font-family:inherit;color:inherit}
+.chipd{display:inline-block;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:.8rem;padding:3px 10px;border-radius:99px}
+.chipd.neg{background:var(--danger-soft);color:var(--danger)}
+.chipd.neu{background:var(--surface2);color:var(--muted)}
+.stp{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end}
+.stp div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.7rem;color:var(--muted)}
+.stp b{min-width:42px;box-sizing:border-box;text-align:center;padding:9px 0;border-radius:11px;color:#14262a;font-size:.9rem}
+.lgd{display:flex;flex-wrap:wrap;gap:14px;font-size:.78rem;color:var(--muted)}
+.lgd i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px}
 .notes-list{list-style:none;padding:0;margin:10px 0 0}.notes-list li{margin:0 0 10px;padding-bottom:10px;border-bottom:1px solid var(--line,#ddd)}
 .dm-note{font-size:.88rem;color:var(--muted);font-style:italic;margin:2px 0 6px}
 .kpi small{font-size:.9rem;font-weight:600;color:var(--muted)}
@@ -535,7 +565,7 @@ const firstName = c => (c && c.name ? c.name.trim().split(/\s+/)[0] : 'el niño 
 
 /* ============ Interfaz común ============ */
 const app = $('#app');
-let ui = { view: 'home', childId: null, evalId: null, step: null, q: '', formFor: null };
+let ui = { view: 'home', childId: null, evalId: null, step: null, q: '', formFor: null, cmpId: null };
 let toastT;
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3600); }
 function modal(html, wide) { return new Promise(res => { const m = $('#modal'); m.innerHTML = '<div class="box' + (wide ? ' wide' : '') + '" role="dialog" aria-modal="true">' + html + '</div>'; m.hidden = false;
@@ -545,7 +575,7 @@ function modal(html, wide) { return new Promise(res => { const m = $('#modal'); 
 const ask = (msg, ok = 'Aceptar', danger = false) => modal('<p>' + msg + '</p><div class="acts"><button class="btn" data-v="no">Cancelar</button><button class="btn ' + (danger ? 'danger' : 'primary') + '" data-v="ok">' + ok + '</button></div>').then(v => v === 'ok');
 function go(v) { Object.assign(ui, v); window.scrollTo(0, 0); render(); }
 let domChart = null, domLvl = 1;
-function render() { if (domChart) { domChart.destroy(); domChart = null; } ({ home: renderHome, child: renderChild, wiz: renderWiz, res: renderRes }[ui.view])(); }
+function render() { if (domChart) { domChart.destroy(); domChart = null; } ({ home: renderHome, child: renderChild, wiz: renderWiz, res: renderRes, dash: renderDash }[ui.view])(); }
 function paintSaved() {
   const s = $('#saved'); if (!s) return;
   const d = new Date(), hm = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
@@ -665,6 +695,7 @@ function renderChild() {
     <td><div class="row-actions">
       <button class="btn sm primary" data-ev="${e.id}" data-act="openEval">${p.pct === 100 ? 'Corregir' : 'Continuar'}</button>
       <button class="btn sm" data-ev="${e.id}" data-act="openRes">Matriz</button>
+      <button class="btn sm" data-ev="${e.id}" data-act="openDash">Dashboard</button>
       <button class="btn sm" data-ev="${e.id}" data-act="pdfM">PDF matriz</button>
       <button class="btn sm" data-ev="${e.id}" data-act="pdfD">PDF dashboard</button>
       <button class="btn sm" data-ev="${e.id}" data-act="pdfS">PDF destrezas</button>
@@ -792,7 +823,7 @@ function renderRes() {
   <header class="head"><div><p class="eyebrow">Matriz de comunicación · aplicada el ${fmtDate(ev.date)}${ev.evaluator ? ' · ' + esc(ev.evaluator) : ''}${c.dob ? ' · Edad: ' + esc(ageText(c.dob, ev.date)) : ''}</p><h1>${esc(c.name)}</h1></div>
   <div class="head-actions"><button class="btn" data-act="guide">Guía</button><button class="btn" data-act="toWiz">Corregir respuestas</button></div></header>`;
   if (p.pct < 100) h += `<div class="banner"><span><b>Faltan ${p.total - p.done} funciones por responder.</b> Mientras tanto aparecen como «No se utiliza».</span><button class="btn sm" data-act="toWiz">Continuar</button></div>`;
-  h += `<div class="res-actions"><button class="btn primary" data-act="pdfM">Descargar matriz (PDF)</button><button class="btn primary" data-act="pdfD">Descargar dashboard (PDF)</button><button class="btn primary" data-act="pdfS">Descargar lista de destrezas (PDF)</button><button class="btn primary" data-act="informe">Informe fonoaudiológico (PDF)</button></div>
+  h += `<div class="res-actions"><button class="btn primary" data-act="toDash">Ver dashboard</button><button class="btn primary" data-act="pdfM">Descargar matriz (PDF)</button><button class="btn primary" data-act="pdfD">Descargar dashboard (PDF)</button><button class="btn primary" data-act="pdfS">Descargar lista de destrezas (PDF)</button><button class="btn primary" data-act="informe">Informe fonoaudiológico (PDF)</button></div>
   <div class="legend">${ST.map((s, i) => '<span><i class="st' + i + '"></i>' + s + '</span>').join('')}</div>
   <div class="mxscroll"><div class="mx">`;
   ROWS.forEach((r, ri) => {
@@ -835,6 +866,131 @@ function paintDomain(L) {
   const cs = getComputedStyle(document.documentElement), cfg = domainCfg(ev, L, 13, cs.getPropertyValue('--ink').trim() || '#222', cs.getPropertyValue('--line').trim() || '#ddd', LEVELS[L].n + ' · ' + LEVELS[L].t);
   cfg.options.responsive = true; cfg.options.maintainAspectRatio = false; cfg.options.animation = false;
   domChart = new Chart($('#domCanvas').getContext('2d'), cfg);
+}
+/* ============ Dashboard (pantalla) ============ */
+const DOMC = '#fba97d', EMC = '#fde37f', SUPC = '#cfcfcf';
+const heatRGB = p => { const t = Math.max(0, Math.min(100, p)) / 100; return [Math.round(241 + t), Math.round(244 - 104 * t), Math.round(246 - 152 * t)]; };
+function prevOf(ev, c, cmpId) {
+  const h = evalsOf(c.id).filter(e => e.id !== ev.id), pick = cmpId && h.find(e => e.id === cmpId);
+  if (pick) return pick;
+  return h.find(e => e.date < ev.date || (e.date === ev.date && e.created < ev.created)) || null;
+}
+function dashData(ev, c, prev) {
+  const sc = scoreInfo(ev), k = counts(ev), cells = allCells(ev);
+  const levels = [1,2,3,4,5,6,7].map(L => { const cs = cells.filter(x => x.lvl === L); return { L, n: cs.length, dom: cs.filter(x => x.st === 2).length, em: cs.filter(x => x.st === 1).length, sup: cs.filter(x => x.st === 3).length }; });
+  const heat = ROWS.map(r => ({ lvl: r.lvl, cells: r.cells.map(cl => { const st = stOf(ev, cl.key); return { key: cl.key, code: cl.code, c0: cl.c0, c1: cl.c1, st, pct: st === 3 ? 100 : cellPct(ev, cl.key) }; }) }));
+  const ap = applicable(ev);
+  const modes = CAT_ORDER.map(cat => { let tot = 0, d = 0, e = 0;
+    ap.forEach(f => { if (!f.cats[cat] || !ev.ans[f.id]) return; f.cats[cat].forEach((_, i) => { tot++; const v = ev.beh[f.id + '|' + cat + '|' + i] || 0; if (v === 2) d++; else if (v === 1) e++; }); });
+    return { cat, name: CATS[cat], tot, dom: tot ? Math.round(100 * d / tot) : 0, em: tot ? Math.round(100 * e / tot) : 0 }; }).filter(m => m.tot);
+  const zone = cells.filter(x => x.st === 1).map(x => { const f = cellFun(x.key), bs = cellBehs(f, cellLevel(x.key));
+    const d = bs.filter(b => (ev.beh[b.k] || 0) === 2).length, e = bs.filter(b => (ev.beh[b.k] || 0) === 1).length;
+    return { key: x.key, code: x.code, name: f.short, lvl: LEVELS[x.lvl].n, pct: cellPct(ev, x.key), det: d + ' dominadas y ' + e + ' emergentes de ' + bs.length + ' conductas' }; })
+    .sort((a, b) => b.pct - a.pct).slice(0, 6);
+  const hist = evalsOf(c.id).filter(e => e.date < ev.date || (e.date === ev.date && e.created <= ev.created)).reverse().slice(-8)
+    .map(e => { const s2 = scoreInfo(e); return { id: e.id, date: e.date, pct: s2.pct, g: s2.groups.map(x => x.pctDom) }; });
+  const gs = sc.groups, prevSc = prev ? scoreInfo(prev) : null;
+  const best = gs.reduce((a, b) => b.pctDom > a.pctDom ? b : a), worst = gs.reduce((a, b) => b.pctDom < a.pctDom ? b : a);
+  const adv = prevSc ? gs.map((g, i) => ({ name: g.name, d: g.pctDom - prevSc.groups[i].pctDom })).reduce((a, b) => b.d > a.d ? b : a) : null;
+  return { sc, k, levels, heat, modes, zone, hist, prev, prevSc, best, worst, adv };
+}
+const sgn = n => (n > 0 ? '+' : '') + n;
+function sparkSvg(vals) {
+  if (vals.length < 2) return '';
+  const xs = vals.map((_, i) => 6 + i * 108 / (vals.length - 1)), ys = vals.map(v => Math.round((32 - v * 0.28) * 10) / 10);
+  return '<svg viewBox="0 0 120 36" width="110" height="36" aria-hidden="true"><polyline points="' + xs.map((x, i) => x + ',' + ys[i]).join(' ') + '" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"></polyline><circle cx="' + xs[xs.length - 1] + '" cy="' + ys[ys.length - 1] + '" r="4" fill="var(--accent)"></circle></svg>';
+}
+function radarSvg(vals, pvals) {
+  const P = v => (190) + ',' + (150 - v), pts = v => [[190, 150 - v[0]], [190 + v[1], 150], [190, 150 + v[2]], [190 - v[3], 150]].map(p => p.join(',')).join(' ');
+  const ring = r => [[190, 150 - r], [190 + r, 150], [190, 150 + r], [190 - r, 150]].map(p => p.join(',')).join(' ');
+  const t = vals;
+  return `<svg viewBox="0 0 380 290" width="100%" style="color:var(--ink);max-width:440px;align-self:center" role="img" aria-label="Radar: Rechazar ${t[0]}%, Obtener ${t[1]}%, Social ${t[2]}%, Información ${t[3]}%">
+    ${[100, 75, 50, 25].map(r => `<polygon points="${ring(r)}" fill="none" stroke="var(--line)"></polygon>`).join('')}
+    <line x1="190" y1="50" x2="190" y2="250" stroke="var(--line)"></line><line x1="90" y1="150" x2="290" y2="150" stroke="var(--line)"></line>
+    ${pvals ? `<polygon points="${pts(pvals)}" fill="none" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 4"></polygon>` : ''}
+    <polygon points="${pts(vals)}" fill="${DOMC}" fill-opacity="0.55" stroke="#c2531c" stroke-width="2.5" stroke-linejoin="round"></polygon>
+    ${[[190, 150 - t[0]], [190 + t[1], 150], [190, 150 + t[2]], [190 - t[3], 150]].map(p => `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#c2531c"></circle>`).join('')}
+    <g font-size="14" font-weight="700" fill="currentColor">
+    <text x="190" y="30" text-anchor="middle">Rechazar ${t[0]}%</text><text x="300" y="155">Obtener</text><text x="300" y="173">${t[1]}%</text>
+    <text x="190" y="272" text-anchor="middle">Social ${t[2]}%</text><text x="80" y="155" text-anchor="end">Información</text><text x="80" y="173" text-anchor="end">${t[3]}%</text></g></svg>`;
+}
+function evoSvg(hist) {
+  const n = hist.length, xs = hist.map((_, i) => 70 + i * 480 / (n - 1)), ys = hist.map(h => Math.round((190 - 1.5 * h.pct) * 10) / 10);
+  const line = xs.map((x, i) => x + ',' + ys[i]).join(' ');
+  return `<svg viewBox="0 0 620 240" width="100%" style="color:var(--ink)" role="img" aria-label="Puntaje total en el tiempo">
+    ${[[190, '0%'], [115, '50%'], [40, '100%']].map(g => `<line x1="50" y1="${g[0]}" x2="590" y2="${g[0]}" stroke="var(--line)"></line><text x="42" y="${g[0] + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${g[1]}</text>`).join('')}
+    <polygon points="${xs[0]},190 ${line} ${xs[n - 1]},190" fill="var(--accent)" fill-opacity="0.14"></polygon>
+    <polyline points="${line}" fill="none" stroke="var(--accent)" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"></polyline>
+    ${hist.map((h, i) => `<circle cx="${xs[i]}" cy="${ys[i]}" r="${i === n - 1 ? 7 : 6}" fill="${i === n - 1 ? 'var(--accent)' : 'var(--surface)'}" stroke="var(--accent)" stroke-width="3"></circle>
+    <text x="${xs[i]}" y="${ys[i] - 14}" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">${h.pct}%</text>
+    <text x="${xs[i]}" y="214" text-anchor="middle" font-size="12" fill="${i === n - 1 ? 'currentColor' : 'var(--muted)'}" ${i === n - 1 ? 'font-weight="700"' : ''}>${fmtDate(h.date)}</text>`).join('')}</svg>`;
+}
+function renderDash() {
+  const ev = db.evals.find(e => e.id === ui.evalId), c = ev && childOf(ev.childId);
+  if (!ev || !c) return go({ view: 'home' });
+  const prev = prevOf(ev, c, ui.cmpId), D = dashData(ev, c, prev), sc = D.sc, k = D.k, others = evalsOf(c.id).filter(e => e.id !== ev.id);
+  const C0 = 2 * Math.PI * 70, a1 = (2 * (k[2] + k[3]) / 160 * C0).toFixed(1), a2 = (k[1] / 160 * C0).toFixed(1), C0s = C0.toFixed(2);
+  const dpct = D.prevSc ? sc.pct - D.prevSc.pct : null;
+  const dchip = (d, lbl) => d === null ? '' : '<span class="chipd' + (d < 0 ? ' neg' : d === 0 ? ' neu' : '') + '">' + (d > 0 ? '▲ ' : d < 0 ? '▼ ' : '= ') + sgn(d) + ' pts' + (lbl ? ' ' + lbl : '') + '</span>';
+  const pl = sc.primary || 0;
+  const stepper = D.levels.map(l => { const sup = l.sup === l.n, pc = Math.round(100 * l.dom / l.n);
+    let st = 'background:#fcd9c4'; if (sup) st = 'background:' + SUPC; if (l.L === pl) st = 'background:var(--ink);color:var(--bg)'; else if (l.L === sc.topStrict) st += ';border:2px dashed #c2531c';
+    return `<div><b style="${st}">N${l.L}</b><span>${sup ? 'superado' : pc + '%'}</span></div>`; }).join('');
+  const ins = [
+    ['#e08a5a', 'Mayor desarrollo', D.best.name + ' · ' + D.best.pctDom + '% dominado'],
+    ['#d6b230', 'Mayor oportunidad', D.worst.name + ' · ' + D.worst.pctDom + '% dominado'],
+    ['var(--accent)', D.adv ? 'Mayor avance desde ' + fmtDate(prev.date) : 'Avance', D.adv ? (D.adv.d > 0 ? D.adv.name + ' · ' + sgn(D.adv.d) + ' puntos' : 'Sin avances en las razones') : 'Compara con otra evaluación']];
+  const heatRows = D.heat.map((r, ri) => `<div class="hl" style="grid-column:1;grid-row:${ri + 2}"><b>${LEVELS[r.lvl].n}</b><small>${esc(LEVELS[r.lvl].t)}</small></div>` +
+    r.cells.map(x => { const bg = x.st === 3 ? SUPC : 'rgb(' + heatRGB(x.pct).join(',') + ')';
+      return `<button class="hc" data-cell="${x.key}" title="${esc(x.code + ' · ' + cellLabel(x.key) + ' · ' + ST[x.st])}" style="grid-column:${x.c0 + 1}/${x.c1 + 2};grid-row:${ri + 2};background:${bg}"><b>${x.code}</b><span>${x.st === 3 ? 'Sup.' : x.pct + '%'}</span></button>`; }).join('')).join('');
+  const rs = sc.groups.map(g => g.pctDom), ps = D.prevSc ? D.prevSc.groups.map(g => g.pctDom) : null;
+  const sparks = sc.groups.map((g, i) => { const d = ps ? g.pctDom - ps[i] : null;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;flex-wrap:wrap"><div style="flex:1 1 120px"><b>${g.name}</b><div class="muted small">${ps ? ps[i] + '% → ' : ''}${g.pctDom}%</div></div>${sparkSvg(D.hist.map(h => h.g[i]))}${dchip(d, '')}</div>`; }).join('');
+  let h = `<div class="crumbs"><button class="btn ghost sm" data-act="home">⌂ Inicio</button><button class="btn ghost sm" data-act="backToChild">← ${esc(c.name)}</button><button class="btn ghost sm" data-act="toRes">← Matriz</button></div>
+  <header class="head"><div><p class="eyebrow">Dashboard · aplicada el ${fmtDate(ev.date)}${ev.evaluator ? ' · ' + esc(ev.evaluator) : ''}${c.dob ? ' · Edad: ' + esc(ageText(c.dob, ev.date)) : ''}</p><h1>${esc(c.name)}</h1></div>
+  <div class="head-actions">${others.length ? `<label class="f" style="min-width:210px">Comparar con<select data-cmp><option value="">${D.prev && !ui.cmpId ? 'Evaluación anterior (' + fmtDate(D.prev.date) + ')' : 'Evaluación anterior'}</option>${others.map(e => `<option value="${e.id}" ${ui.cmpId === e.id ? 'selected' : ''}>${fmtDate(e.date)}</option>`).join('')}</select></label>` : ''}
+  <button class="btn primary" data-act="pdfD">Descargar dashboard (PDF)</button></div></header>
+  <div class="dsh">
+  <div class="dg">${ins.map(i => `<div class="ins"><i style="background:${i[0]}"></i><div><small>${esc(i[1])}</small><b>${esc(i[2])}</b></div></div>`).join('')}</div>
+  <div class="dg">
+    <section class="dc"><span class="eb">Puntaje total</span><div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+      <div style="position:relative;width:170px;height:170px;flex:none"><svg viewBox="0 0 200 200" width="170" height="170" role="img" aria-label="Puntaje ${sc.total} de 160, ${sc.pct} por ciento">
+        <circle cx="100" cy="100" r="70" fill="none" stroke="var(--surface2)" stroke-width="20"></circle>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="${DOMC}" stroke-width="20" stroke-dasharray="${a1} ${C0s}" transform="rotate(-90 100 100)"></circle>
+        <circle cx="100" cy="100" r="70" fill="none" stroke="${EMC}" stroke-width="20" stroke-dasharray="${a2} ${C0s}" stroke-dashoffset="-${a1}" transform="rotate(-90 100 100)"></circle></svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><b style="font-size:2.2rem;line-height:1">${sc.total}</b><span class="muted small">de 160</span></div></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><b style="font-size:2rem;line-height:1">${sc.pct}%</b><span class="muted small">del máximo posible</span>${dchip(dpct, D.prev ? 'vs ' + fmtDate(D.prev.date) : '')}</div></div></section>
+    <section class="dc" style="flex-grow:1.3"><span class="eb">Nivel de comunicación</span><div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><b style="font-size:2rem;line-height:1">${sc.primary ? LEVELS[sc.primary].n : 'Sin nivel'}</b><span class="muted">${sc.primary ? esc(LEVELS[sc.primary].t) + ' · nivel primario' : 'Aún no hay celdas dominadas'}</span></div>
+      <div class="stp">${stepper}</div>
+      <p class="muted small" style="margin:0">El nivel primario es el de mayor porcentaje de celdas dominadas. Nivel más alto con alguna celda dominada: <b style="color:var(--ink)">${sc.topStrict ? LEVELS[sc.topStrict].n : '—'}</b> (borde punteado).</p></section>
+    <section class="dc" style="flex-grow:1.1"><span class="eb">80 celdas de la matriz</span>
+      <div class="dbar" style="height:22px;border-radius:99px" role="img" aria-label="${k[2]} dominadas, ${k[1]} emergentes, ${k[3]} superadas, ${k[0]} no se utilizan"><div style="width:${100 * k[2] / 80}%;background:${DOMC}"></div><div style="width:${100 * k[1] / 80}%;background:${EMC}"></div><div style="width:${100 * k[3] / 80}%;background:${SUPC}"></div></div>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px">${[[DOMC, k[2], 'dominadas'], [EMC, k[1], 'emergentes'], [SUPC, k[3], 'superadas'], ['var(--surface2)', k[0], 'no se utilizan']].map(q => `<div style="display:flex;gap:10px;align-items:center"><i style="width:14px;height:14px;border-radius:4px;background:${q[0]};border:1px solid var(--line)"></i><div><b style="font-size:1.4rem;line-height:1">${q[1]}</b><div class="muted small">${q[2]}</div></div></div>`).join('')}</div></section>
+  </div>
+  <div class="dg">
+    <section class="dc" style="flex:1.5 1 520px"><span class="eb">Escalera de niveles</span><h2>Porcentaje de celdas de cada nivel por estado</h2>
+      ${D.levels.map(l => `<div class="lvrow"><div class="nm"><b>${LEVELS[l.L].n}</b><small>${esc(LEVELS[l.L].t)}</small></div><div class="bx"><div class="dbar" style="height:100%"><div style="width:${100 * l.sup / l.n}%;background:${SUPC}"></div><div style="width:${100 * l.dom / l.n}%;background:${DOMC}"></div><div style="width:${100 * l.em / l.n}%;background:${EMC}"></div></div></div><div class="vl">${l.sup === l.n ? 'Superado' : Math.round(100 * l.dom / l.n) + '%'}</div></div>`).join('')}
+      <div class="lgd"><span><i style="background:${DOMC}"></i>Dominado</span><span><i style="background:${EMC}"></i>Emergente</span><span><i style="background:${SUPC}"></i>Superado</span><span><i style="background:var(--surface2);border:1px solid var(--line)"></i>No se utiliza</span></div></section>
+    <section class="dc"><span class="eb">Razones para comunicarse</span><h2>Perfil comunicativo (% de celdas dominadas)</h2>${radarSvg(rs, ps)}
+      <div class="lgd"><span><i style="background:#c2531c;height:8px"></i>${fmtDate(ev.date)}</span>${D.prev ? `<span><i style="background:none;border-top:2px dashed var(--muted);height:0"></i>${fmtDate(D.prev.date)}</span>` : ''}</div></section>
+  </div>
+  <section class="dc"><span class="eb">Mapa de calor de la matriz</span><h2>Qué tan cerca está cada celda de dominarse</h2>
+    <div class="lgd" style="align-items:center"><span>0%</span><span style="display:inline-block;width:160px;height:12px;border-radius:6px;background:linear-gradient(90deg,rgb(241,244,246),rgb(242,140,94))"></span><span>100%</span><span><i style="background:${SUPC}"></i>Superado</span><span>Toca una celda para ver el detalle.</span></div>
+    <div class="heat"><div class="hg">${Array.from({ length: 17 }, (_, i) => `<div class="hn" style="grid-column:${i + 2};grid-row:1">${i + 1}</div>`).join('')}${heatRows}</div></div>
+    <p class="muted small" style="margin:0">Cada celda usa el porcentaje de conductas logradas (2 puntos por dominada, 1 por emergente). Los números de arriba son las columnas C1 a C17.</p></section>
+  <div class="dg">
+    <section class="dc" style="flex:1 1 420px"><span class="eb">Modos de expresión</span><h2>Cómo se comunica</h2>
+      ${D.modes.map(m => `<div><div style="display:flex;justify-content:space-between;gap:8px;font-size:.88rem"><span>${esc(m.name)}</span><b>${m.dom}% dominado · ${m.em}% emergente</b></div><div class="dbar" style="height:12px;border-radius:99px;margin-top:4px"><div style="width:${m.dom}%;background:${DOMC}"></div><div style="width:${m.em}%;background:${EMC}"></div></div></div>`).join('') || '<p class="muted">Aún no hay conductas registradas.</p>'}</section>
+    <section class="dc" style="flex:1.2 1 460px"><span class="eb">Zona de desarrollo próximo</span><h2>Habilidades emergentes más cercanas a dominarse</h2>
+      ${D.zone.map(z => `<button class="zrow" data-cell="${z.key}"><span class="chip" style="background:var(--warn-bg);color:var(--warn-ink)">${z.code}</span><span style="flex:1 1 200px;min-width:0"><b>${esc(z.name)}</b><span class="muted small" style="display:block">${z.lvl} · ${z.det}</span></span><span style="flex:none;width:140px;display:flex;align-items:center;gap:8px"><span class="dbar" style="flex:1;height:8px;border-radius:99px"><span style="display:block;width:${z.pct}%;background:${EMC}"></span></span><b>${z.pct}%</b></span></button>`).join('') || '<p class="muted">No hay habilidades emergentes registradas.</p>'}
+      <p class="muted small" style="margin:0">Sirven de base para las sugerencias del informe fonoaudiológico.</p></section>
+  </div>
+  <div class="dg">
+    <section class="dc" style="flex:1.4 1 520px"><span class="eb">Evolución</span><h2>Puntaje total entre evaluaciones (% del máximo)</h2>
+      ${D.hist.length >= 2 ? evoSvg(D.hist) : '<p class="muted">Con dos o más evaluaciones de este niño o niña se muestra aquí cómo evoluciona el puntaje.</p>'}</section>
+    <section class="dc"><span class="eb">Cambios por razón</span><h2>${D.prev ? 'Respecto de ' + fmtDate(D.prev.date) : 'Razones para comunicarse'}</h2>${sparks}</section>
+  </div></div>`;
+  app.innerHTML = h;
 }
 function pill(v) { return '<span class="pill st' + v + '">' + ST[v] + '</span>'; }
 async function showCell(ev, key) {
@@ -1021,56 +1177,129 @@ function funProfile(ev) {
     return { f, dom, em };
   });
 }
-async function makeDashPdf(ev, c) {
+/* ============ PDF dashboard (páginas nuevas, vectoriales) ============ */
+function poly(doc, pts, style) {
+  const segs = []; for (let i = 1; i < pts.length; i++) segs.push([pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]]);
+  doc.lines(segs, pts[0][0], pts[0][1], [1, 1], style || 'S', true);
+}
+function ringArc(doc, cx, cy, r1, r2, f0, f1, rgb) {
+  if (f1 <= f0) return; const n = Math.max(2, Math.ceil((f1 - f0) * 120));
+  doc.setFillColor(...rgb); doc.setDrawColor(...rgb); doc.setLineWidth(0.1);
+  for (let i = 0; i < n; i++) {
+    const a0 = (-90 + 360 * (f0 + (f1 - f0) * i / n)) * Math.PI / 180, a1 = (-90 + 360 * (f0 + (f1 - f0) * (i + 1) / n)) * Math.PI / 180;
+    poly(doc, [[cx + r2 * Math.cos(a0), cy + r2 * Math.sin(a0)], [cx + r2 * Math.cos(a1), cy + r2 * Math.sin(a1)], [cx + r1 * Math.cos(a1), cy + r1 * Math.sin(a1)], [cx + r1 * Math.cos(a0), cy + r1 * Math.sin(a0)]], 'FD');
+  }
+}
+function radarPdf(doc, cx, cy, R, vals, pvals) {
+  doc.setLineWidth(0.2); doc.setDrawColor(210);
+  [25, 50, 75, 100].forEach(p => { const r = R * p / 100; poly(doc, [[cx, cy - r], [cx + r, cy], [cx, cy + r], [cx - r, cy]], 'S'); });
+  doc.line(cx, cy - R, cx, cy + R); doc.line(cx - R, cy, cx + R, cy);
+  const pts = v => [[cx, cy - R * v[0] / 100], [cx + R * v[1] / 100, cy], [cx, cy + R * v[2] / 100], [cx - R * v[3] / 100, cy]];
+  if (pvals) { doc.setDrawColor(130); doc.setLineWidth(0.4); doc.setLineDashPattern([1.2, 1], 0); poly(doc, pts(pvals), 'S'); doc.setLineDashPattern([], 0); }
+  doc.setFillColor(252, 215, 196); doc.setDrawColor(194, 83, 28); doc.setLineWidth(0.6); poly(doc, pts(vals), 'FD');
+}
+function drawDashPages(doc, ev, c, foot, cmpId) {
+  const M = 14, CW = 182, prev = prevOf(ev, c, cmpId), D = dashData(ev, c, prev), sc = D.sc, k = D.k;
+  const card = (x, y, w, h) => { doc.setFillColor(246, 248, 247); doc.setDrawColor(205); doc.setLineWidth(0.2); doc.roundedRect(x, y, w, h, 2, 2, 'FD'); };
+  const lab = (t, x, y) => { doc.setTextColor(100); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.text(t.toUpperCase(), x, y); };
+  const ink = () => { doc.setTextColor(25); doc.setFont('helvetica', 'normal'); };
+  const sgn2 = n => (n > 0 ? '+' : '') + n;
+  /* Encabezado */
+  doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('Dashboard de comunicación', M, 17);
+  doc.setFontSize(13); doc.text(c.name, M, 25); ageAfterName(doc, c, ev, M, 25); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text('Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? '   ·   Evaluador/a: ' + ev.evaluator : '') + (c.dx ? '   ·   Diagnóstico: ' + c.dx : ''), M, 31);
+  /* Fila A */
+  let y = 36;
+  card(M, y, 58, 50); lab('Puntaje total', M + 4, y + 6);
+  const rcx = M + 22, rcy = y + 27;
+  ringArc(doc, rcx, rcy, 12, 18, 0, 1, [237, 240, 243]);
+  ringArc(doc, rcx, rcy, 12, 18, 0, 2 * (k[2] + k[3]) / 160, RGB[2]); ringArc(doc, rcx, rcy, 12, 18, 2 * (k[2] + k[3]) / 160, (2 * (k[2] + k[3]) + k[1]) / 160, RGB[1]);
+  ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(String(sc.total), rcx, rcy + 1, { align: 'center' }); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.text('de 160', rcx, rcy + 5, { align: 'center' });
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.text(sc.pct + '%', M + 44, rcy - 3); doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(100); doc.text('del máximo', M + 44, rcy + 1);
+  if (D.prevSc) { const d = sc.pct - D.prevSc.pct; doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(d < 0 ? 170 : 15, d < 0 ? 40 : 110, d < 0 ? 40 : 100); doc.text(sgn2(d) + ' pts', M + 44, rcy + 6); doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5); doc.setTextColor(100); doc.text('vs ' + fmtDate(prev.date), M + 44, rcy + 9.5); }
+  /* Nivel */
+  const nx = M + 61; card(nx, y, 66, 50); lab('Nivel de comunicación', nx + 4, y + 6); ink();
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.text(sc.primary ? LEVELS[sc.primary].n : 'Sin nivel', nx + 4, y + 15);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100); doc.text(sc.primary ? LEVELS[sc.primary].t + ' · nivel primario' : 'Aún no hay celdas dominadas', nx + 4, y + 19.5);
+  D.levels.forEach((l, i) => { const bx = nx + 4 + i * 8.4, sup = l.sup === l.n;
+    doc.setFillColor(...(sup ? RGB[3] : l.L === sc.primary ? [20, 38, 42] : [252, 217, 196])); doc.setDrawColor(...(l.L === sc.topStrict && l.L !== sc.primary ? [194, 83, 28] : [200, 200, 200])); doc.setLineWidth(l.L === sc.topStrict && l.L !== sc.primary ? 0.5 : 0.15);
+    if (l.L === sc.topStrict && l.L !== sc.primary) doc.setLineDashPattern([0.8, 0.6], 0); doc.roundedRect(bx, y + 24, 7.2, 8, 1.5, 1.5, 'FD'); doc.setLineDashPattern([], 0);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.setTextColor(l.L === sc.primary ? 255 : 25); doc.text('N' + l.L, bx + 3.6, y + 28.8, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(5); doc.setTextColor(100); doc.text(sup ? 'sup.' : Math.round(100 * l.dom / l.n) + '%', bx + 3.6, y + 35.5, { align: 'center' }); });
+  doc.setFontSize(6); doc.setTextColor(100); doc.text(doc.splitTextToSize('Nivel primario: el de mayor % de celdas dominadas. Nivel más alto con alguna celda dominada: ' + (sc.topStrict ? LEVELS[sc.topStrict].n : '—') + '.', 58), nx + 4, y + 41, { lineHeightFactor: 1.2 });
+  /* Distribución */
+  const dx = M + 130; card(dx, y, 52, 50); lab('80 celdas de la matriz', dx + 4, y + 6);
+  let bxx = dx + 4; [[k[2], RGB[2]], [k[1], RGB[1]], [k[3], RGB[3]]].forEach(q => { const w = 44 * q[0] / 80; if (w > 0) { doc.setFillColor(...q[1]); doc.rect(bxx, y + 9, w, 5, 'F'); bxx += w; } });
+  doc.setDrawColor(200); doc.setLineWidth(0.15); doc.rect(dx + 4, y + 9, 44, 5, 'S');
+  [[RGB[2], k[2], 'dominadas'], [RGB[1], k[1], 'emergentes'], [RGB[3], k[3], 'superadas'], [[237, 240, 243], k[0], 'no se utilizan']].forEach((q, i) => {
+    const qx = dx + 4 + (i % 2) * 23, qy = y + 22 + Math.floor(i / 2) * 13; doc.setFillColor(...q[0]); doc.setDrawColor(150); doc.rect(qx, qy - 3, 3, 3, 'FD');
+    ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(String(q[1]), qx + 5, qy); doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(100); doc.text(q[2], qx + 5, qy + 3.6); });
+  /* Lectura rápida */
+  y = 90; const ins = [[[224, 138, 90], 'Mayor desarrollo', D.best.name + ' · ' + D.best.pctDom + '%'], [[214, 178, 48], 'Mayor oportunidad', D.worst.name + ' · ' + D.worst.pctDom + '%'],
+    [[12, 102, 112], D.adv ? 'Mayor avance' : 'Avance', D.adv ? (D.adv.d > 0 ? D.adv.name + ' · ' + sgn2(D.adv.d) + ' pts' : 'Sin avances en las razones') : 'Sin evaluación previa']];
+  const iw = (CW - 6) / 3; ins.forEach((q, i) => { const ix = M + i * (iw + 3); card(ix, y, iw, 12); doc.setFillColor(...q[0]); doc.rect(ix + 2.5, y + 2.5, 1.5, 7, 'F'); lab(q[1], ix + 6.5, y + 5); ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text(q[2], ix + 6.5, y + 9.6); });
+  /* Fila B: escalera + radar */
+  y = 106; card(M, y, 108, 68); lab('Escalera de niveles (% de celdas del nivel)', M + 4, y + 6);
+  D.levels.forEach((l, i) => { const ry = y + 11 + i * 7.3; ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.text(LEVELS[l.L].n, M + 4, ry + 2.6); doc.setFont('helvetica', 'normal'); doc.setFontSize(5); doc.setTextColor(100); doc.text(doc.splitTextToSize(LEVELS[l.L].t, 23).slice(0, 2), M + 4, ry + 5, { lineHeightFactor: 1.05 });
+    const bx0 = M + 28, bw = 62; doc.setFillColor(237, 240, 243); doc.rect(bx0, ry, bw, 5, 'F'); let cx2 = bx0;
+    [[l.sup, RGB[3]], [l.dom, RGB[2]], [l.em, RGB[1]]].forEach(q => { const w = bw * q[0] / l.n; if (w > 0) { doc.setFillColor(...q[1]); doc.rect(cx2, ry, w, 5, 'F'); cx2 += w; } });
+    ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.text(l.sup === l.n ? 'Superado' : Math.round(100 * l.dom / l.n) + '%', M + 104, ry + 3.8, { align: 'right' }); });
+  [[RGB[2], 'Dominado'], [RGB[1], 'Emergente'], [RGB[3], 'Superado'], [[237, 240, 243], 'No se utiliza']].forEach((q, i) => { const lx2 = M + 4 + i * 25; doc.setFillColor(...q[0]); doc.setDrawColor(150); doc.setLineWidth(0.15); doc.rect(lx2, y + 63, 3, 3, 'FD'); doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(90); doc.text(q[1], lx2 + 4, y + 65.5); });
+  const rx = M + 111; card(rx, y, 71, 68); lab('Razones para comunicarse', rx + 4, y + 6);
+  const rs = sc.groups.map(g => g.pctDom), ps = D.prevSc ? D.prevSc.groups.map(g => g.pctDom) : null, rcx2 = rx + 35.5, rcy2 = y + 37;
+  radarPdf(doc, rcx2, rcy2, 20, rs, ps);
+  ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
+  doc.text('Rechazar ' + rs[0] + '%', rcx2, rcy2 - 22.5, { align: 'center' }); doc.text('Social ' + rs[2] + '%', rcx2, rcy2 + 25.5, { align: 'center' });
+  doc.text('Obtener', rcx2 + 22, rcy2 - 0.5); doc.text(rs[1] + '%', rcx2 + 22, rcy2 + 2.6); doc.text('Información', rcx2 - 22, rcy2 - 0.5, { align: 'right' }); doc.text(rs[3] + '%', rcx2 - 22, rcy2 + 2.6, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5); doc.setTextColor(100); doc.text('% de celdas dominadas · ' + fmtDate(ev.date) + (prev ? ' (línea punteada: ' + fmtDate(prev.date) + ')' : ''), rx + 4, y + 65);
+  /* Mapa de calor */
+  y = 178; ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.text('Mapa de calor de la matriz', M, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100); doc.text('% de conductas logradas en cada celda (2 puntos por dominada, 1 por emergente)', M + 52, y);
+  const hx0 = M + 24, hg = 0.8, hw = (CW - 24 - 16 * hg) / 17, hy0 = y + 8, hh = 9;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(5.5); doc.setTextColor(100); for (let n = 1; n <= 17; n++) doc.text(String(n), hx0 + (n - 1) * (hw + hg) + hw / 2, hy0 - 1.5, { align: 'center' });
+  D.heat.forEach((r, ri) => { const ry = hy0 + ri * (hh + hg); ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.text(LEVELS[r.lvl].n, M, ry + 3.6); doc.setFont('helvetica', 'normal'); doc.setFontSize(4.8); doc.setTextColor(100); doc.text(doc.splitTextToSize(LEVELS[r.lvl].t, 23).slice(0, 2), M, ry + 6.2, { lineHeightFactor: 1.05 });
+    r.cells.forEach(x => { const cx3 = hx0 + (x.c0 - 1) * (hw + hg), w = (x.c1 - x.c0) * (hw + hg) + hw; doc.setFillColor(...(x.st === 3 ? RGB[3] : heatRGB(x.pct))); doc.roundedRect(cx3, ry, w, hh, 1, 1, 'F');
+      doc.setTextColor(25); doc.setFont('helvetica', 'normal'); doc.setFontSize(4.6); doc.text(x.code, cx3 + w / 2, ry + 3.4, { align: 'center' }); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.2); doc.text(x.st === 3 ? 'Sup.' : x.pct + '%', cx3 + w / 2, ry + 7, { align: 'center' }); }); });
+  const ly = hy0 + 7 * (hh + hg) + 3; doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.setTextColor(90); doc.text('0%', M + 24, ly + 2.6);
+  for (let i = 0; i < 40; i++) { doc.setFillColor(...heatRGB(i * 100 / 39)); doc.rect(M + 30 + i * 1.2, ly, 1.25, 3.4, 'F'); }
+  doc.text('100%', M + 80, ly + 2.6); doc.setFillColor(...RGB[3]); doc.rect(M + 94, ly, 3.4, 3.4, 'F'); doc.text('Superado', M + 99, ly + 2.6);
+  foot();
+  /* Página 2 */
+  doc.addPage(); y = 16;
+  card(M, y, CW, 12 + D.modes.length * 8); lab('Modos de expresión · cómo se comunica', M + 4, y + 6);
+  D.modes.forEach((m, i) => { const ry = y + 10 + i * 8; ink(); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.text(doc.splitTextToSize(m.name, 66)[0], M + 4, ry + 3.4);
+    const bx0 = M + 72, bw = 64; doc.setFillColor(237, 240, 243); doc.rect(bx0, ry, bw, 4.4, 'F'); doc.setFillColor(...RGB[2]); doc.rect(bx0, ry, bw * m.dom / 100, 4.4, 'F'); doc.setFillColor(...RGB[1]); doc.rect(bx0 + bw * m.dom / 100, ry, bw * m.em / 100, 4.4, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.text(m.dom + '% dominado · ' + m.em + '% emergente', M + 140, ry + 3.4); });
+  y += 12 + D.modes.length * 8 + 6;
+  const zh = 14 + Math.max(1, D.zone.length) * 11; card(M, y, CW, zh); lab('Zona de desarrollo próximo · emergentes más cercanas a dominarse', M + 4, y + 6);
+  if (!D.zone.length) { ink(); doc.setFontSize(8); doc.text('No hay habilidades emergentes registradas.', M + 4, y + 13); }
+  D.zone.forEach((z, i) => { const ry = y + 10 + i * 11; doc.setFillColor(255, 241, 194); doc.roundedRect(M + 4, ry, 11, 7, 1.5, 1.5, 'F'); ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.text(z.code, M + 9.5, ry + 4.7, { align: 'center' });
+    doc.setFontSize(8); doc.text(doc.splitTextToSize(z.name, 100)[0], M + 19, ry + 3); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.2); doc.setTextColor(100); doc.text(doc.splitTextToSize(z.lvl + ' · ' + z.det, 118)[0], M + 19, ry + 6.8);
+    doc.setFillColor(237, 240, 243); doc.rect(M + 142, ry + 2, 28, 3, 'F'); doc.setFillColor(...RGB[1]); doc.rect(M + 142, ry + 2, 28 * z.pct / 100, 3, 'F'); ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.text(z.pct + '%', M + 178, ry + 4.6, { align: 'right' }); });
+  y += zh + 6;
+  /* Evolución y cambios */
+  const eh = 74; card(M, y, 112, eh); lab('Evolución del puntaje total (% del máximo)', M + 4, y + 6);
+  const cx0 = M + 16, cw0 = 90, cy0 = y + 60, ch0 = 44;
+  doc.setDrawColor(215); doc.setLineWidth(0.2); [0, 50, 100].forEach(p => { doc.line(cx0, cy0 - ch0 * p / 100, cx0 + cw0, cy0 - ch0 * p / 100); ink(); doc.setFont('helvetica', 'normal'); doc.setFontSize(5.5); doc.setTextColor(100); doc.text(p + '%', cx0 - 2, cy0 - ch0 * p / 100 + 1.5, { align: 'right' }); });
+  if (D.hist.length >= 2) {
+    const n = D.hist.length, X = i => cx0 + 4 + i * (cw0 - 8) / (n - 1), Y = p => cy0 - ch0 * p / 100;
+    doc.setDrawColor(12, 102, 112); doc.setLineWidth(0.7); for (let i = 1; i < n; i++) doc.line(X(i - 1), Y(D.hist[i - 1].pct), X(i), Y(D.hist[i].pct));
+    D.hist.forEach((h, i) => { doc.setFillColor(i === n - 1 ? 12 : 255, i === n - 1 ? 102 : 255, i === n - 1 ? 112 : 255); doc.setLineWidth(0.6); doc.circle(X(i), Y(h.pct), 1.4, 'FD'); ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5); doc.text(h.pct + '%', X(i), Y(h.pct) - 3, { align: 'center' }); doc.setFont('helvetica', 'normal'); doc.setFontSize(5.2); doc.setTextColor(100); doc.text(fmtDate(h.date), X(i), cy0 + 5, { align: 'center' }); });
+  } else { ink(); doc.setFontSize(7.5); doc.setTextColor(100); doc.text(doc.splitTextToSize('Con dos o más evaluaciones de este niño o niña se muestra aquí la evolución del puntaje.', 84), cx0 + 3, cy0 - 20); }
+  const sx = M + 115; card(sx, y, 67, eh); lab(prev ? 'Cambios por razón vs ' + fmtDate(prev.date) : 'Razones para comunicarse', sx + 4, y + 6);
+  sc.groups.forEach((g, i) => { const ry = y + 12 + i * 15; ink(); doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.text(g.name, sx + 4, ry + 3); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(100); doc.text((ps ? ps[i] + '% a ' : '') + g.pctDom + '%', sx + 4, ry + 7.5);
+    if (ps) { const d = g.pctDom - ps[i]; doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(d < 0 ? 170 : 15, d < 0 ? 40 : 110, d < 0 ? 40 : 100); doc.text(sgn2(d) + ' pts', sx + 63, ry + 4.5, { align: 'right' }); }
+    const hv = D.hist.map(h => h.g[i]); if (hv.length >= 2) { doc.setDrawColor(12, 102, 112); doc.setLineWidth(0.5); const X2 = j => sx + 36 + j * 14 / (hv.length - 1), Y2 = v => ry + 9 - v * 0.08; for (let j = 1; j < hv.length; j++) doc.line(X2(j - 1), Y2(hv[j - 1]), X2(j), Y2(hv[j])); } });
+  foot();
+}
+async function makeDashPdf(ev, c, cmpId) {
   Chart.defaults.font.family = 'Helvetica, Arial, sans-serif'; Chart.defaults.font.size = 15; Chart.defaults.color = '#222';
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const PW = 210, M = 14, CW = PW - 2 * M, cells = allCells(ev), k = counts(ev);
   const foot = () => { doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(120); doc.text('Basado en la Communication Matrix (Charity Rowland). Resultados orientativos; no reemplazan el juicio profesional.', M, 290); };
   const sc = scoreInfo(ev), gsx = sc.groups;
-  /* Página 1 */
-  doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.text('Dashboard de comunicación', M, 17);
-  doc.setFontSize(13); doc.text(c.name, M, 25); ageAfterName(doc, c, ev, M, 25); doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
-  doc.text('Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? '   ·   Evaluador/a: ' + ev.evaluator : '') + (c.dx ? '   ·   Diagnóstico: ' + c.dx : ''), M, 31);
-  const kp = [['Dominadas', k[2], 2], ['Emergentes', k[1], 1], ['Superadas', k[3], 3], ['No se utilizan', k[0], 0]];
-  const bw = (CW - 9) / 4; kp.forEach((q, i) => { const x = M + i * (bw + 3); doc.setFillColor(...RGB[q[2]]); doc.setDrawColor(150); doc.rect(x, 36, bw, 17, 'FD'); doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.text(String(q[1]), x + 4, 46.5); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.text(q[0] + ' (de 80 celdas)', x + 4, 51); });
-  const kp2 = [['Puntaje total', sc.total + ' / 160 · ' + sc.pct + '%', 'celda: 0 / 1 emerg. / 2 domin.'],
-    ['Nivel primario', sc.primary ? LEVELS[sc.primary].n : '—', 'mayor % de celdas dominadas'],
-    ['Nivel más alto', sc.topStrict ? LEVELS[sc.topStrict].n : '—', 'con celda dominada' + (sc.topLoose && sc.topLoose !== sc.topStrict ? ' (' + LEVELS[sc.topLoose].n + ' con emerg.)' : '')],
-    ['Patrón por razón (%)', gsx.map(g => g.pctDom).join(' : '), 'Rech : Obt : Soc : Info']];
-  kp2.forEach((q, i) => { const x = M + i * (bw + 3); doc.setFillColor(243, 246, 245); doc.setDrawColor(150); doc.rect(x, 56, bw, 17, 'FD'); doc.setTextColor(90); doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.text(q[0], x + 3, 60.5);
-    doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); doc.text(q[1], x + 3, 66.5); doc.setTextColor(90); doc.setFont('helvetica', 'normal'); doc.setFontSize(6); doc.text(q[2], x + 3, 71); });
-  const ls = lvlStats(ev), y0 = 78;
-  const img1 = chartImg({ type: 'bar', data: { labels: LEVELS.slice(1).map(l => [l.n, l.t.length > 20 ? l.t.slice(0, 18) + '…' : l.t]), datasets: [
-    { label: 'Dominado', data: ls.map(o => o[2]), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
-    { label: 'Emergente', data: ls.map(o => o[1]), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 },
-    { label: 'Superado', data: ls.map(o => o[3]), backgroundColor: CHART_COL[3], borderColor: '#555', borderWidth: 1 },
-    { label: 'No se utiliza', data: ls.map(o => o[0]), backgroundColor: '#f0f0f0', borderColor: '#999', borderWidth: 1 }] },
-    options: { plugins: { title: { display: true, text: 'Celdas por nivel de comunicación', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 2, precision: 0 }, title: { display: true, text: 'Celdas' } } } } });
-  doc.addImage(img1, 'PNG', M, y0, CW, CW * 380 / 900);
-  const img2 = chartImg({ type: 'bar', data: { labels: gsx.map(o => o.name + ' (' + o.total + ' celdas)'), datasets: [
-    { label: 'Dominado', data: gsx.map(o => o.pctDom), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
-    { label: 'Emergente', data: gsx.map(o => o.pctEm), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 },
-    { label: 'Superado', data: gsx.map(o => o.pctSup), backgroundColor: CHART_COL[3], borderColor: '#555', borderWidth: 1 }] },
-    options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Por razón para comunicarse (80 celdas), % de celdas', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { stacked: true, min: 0, max: 100, title: { display: true, text: '% de celdas' } }, y: { stacked: true } } } }, 900, 330);
-  doc.addImage(img2, 'PNG', M, y0 + CW * 380 / 900 + 4, CW, CW * 330 / 900);
-  foot();
-  /* Página 2 */
-  doc.addPage(); const pr = funProfile(ev).filter(x => x.f.kind === 'C');
-  const img3 = chartImg({ type: 'bar', data: { labels: pr.map(x => x.f.id + ' ' + (x.f.short.length > 26 ? x.f.short.slice(0, 25) + '…' : x.f.short)), datasets: [
-    { label: 'Mayor nivel dominado', data: pr.map(x => x.dom), backgroundColor: CHART_COL[2], borderColor: '#555', borderWidth: 1 },
-    { label: 'Mayor nivel emergente', data: pr.map(x => x.em), backgroundColor: CHART_COL[1], borderColor: '#555', borderWidth: 1 }] },
-    options: { indexAxis: 'y', plugins: { title: { display: true, text: 'Perfil por función: nivel alcanzado (0 = ninguno)', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { x: { min: 0, max: 7, ticks: { stepSize: 1 }, title: { display: true, text: 'Nivel' } }, y: { ticks: { font: { size: 13 } } } } } }, 900, 760);
-  doc.addImage(img3, 'PNG', M, 14, CW, CW * 760 / 900);
-  let y = 14 + CW * 760 / 900 + 6;
-  const hist = evalsOf(c.id).slice().reverse();
-  if (hist.length >= 2) {
-    const img4 = chartImg({ type: 'line', data: { labels: hist.map(e => fmtDate(e.date)), datasets: [
-      { label: 'Dominadas', data: hist.map(e => counts(e)[2]), borderColor: '#d9692f', backgroundColor: '#fba97d', tension: .2, pointRadius: 5 },
-      { label: 'Emergentes', data: hist.map(e => counts(e)[1]), borderColor: '#b89a12', backgroundColor: '#fde37f', tension: .2, pointRadius: 5 }] },
-      options: { plugins: { title: { display: true, text: 'Evolución entre evaluaciones', font: { size: 19, weight: 'bold' } }, legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 }, title: { display: true, text: 'Celdas' } } } } }, 900, 300);
-    doc.addImage(img4, 'PNG', M, y, CW, CW * 300 / 900); y += CW * 300 / 900 + 4;
-  }
-  foot();
+  let y;
+  drawDashPages(doc, ev, c, foot, cmpId);
   /* Vista de dominio por nivel */
   doc.addPage(); doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('Vista de dominio por nivel', M, 18);
   const cw2 = (CW - 6) / 2, ch2 = cw2 * 420 / 800, yy = 26;
@@ -1178,6 +1407,7 @@ async function doImport(file) {
 }
 
 /* ============ Eventos ============ */
+document.addEventListener('change', t => { const el = t.target; if (el && el.matches && el.matches('[data-cmp]')) { ui.cmpId = el.value || null; render(); } });
 document.addEventListener('click', async ev => {
   const b = ev.target.closest('[data-act],[data-child],[data-step],[data-cell],[data-lvl],[data-dom]'); if (!b) return;
   const e = () => db.evals.find(x => x.id === (b.dataset.ev || ui.evalId));
@@ -1198,7 +1428,9 @@ document.addEventListener('click', async ev => {
     case 'newFromLast': { const l = evalsOf(ui.childId)[0]; if (!l) return; const n = newEval(ui.childId, l); toast('Nueva evaluación con las respuestas de la última'); return go({ view: 'wiz', evalId: n.id, step: null }); }
     case 'fromEval': { const n = newEval(ui.childId, e()); toast('Nueva evaluación con las respuestas de la elegida'); return go({ view: 'wiz', evalId: n.id, step: null }); }
     case 'openEval': return go({ view: 'wiz', evalId: b.dataset.ev, step: null });
-    case 'openRes': return go({ view: 'res', evalId: b.dataset.ev });
+    case 'openRes': return go({ view: 'res', evalId: b.dataset.ev, cmpId: null });
+    case 'openDash': return go({ view: 'dash', evalId: b.dataset.ev, cmpId: null });
+    case 'toDash': return go({ view: 'dash' });
     case 'toRes': return go({ view: 'res' });
     case 'toWiz': return go({ view: 'wiz', step: null });
     case 'delEval': { const E = e(); if (await ask('¿Eliminar la evaluación del <b>' + fmtDate(E.date) + '</b>? No se puede deshacer.', 'Sí, eliminar', true)) { db.evals = db.evals.filter(x => x.id !== E.id); persist(); toast('Evaluación eliminada'); render(); } return; }
@@ -1206,7 +1438,7 @@ document.addEventListener('click', async ev => {
     case 'pdfM': case 'pdfD': case 'pdfS': {
       if (!window.jspdf) return toast('No se cargó la librería de PDF. Revisa tu conexión.');
       const E = e(), c = childOf(E.childId); b.disabled = true; const old = b.textContent; b.textContent = 'Generando…';
-      try { if (b.dataset.act === 'pdfM') await saveFile('Matriz_' + slug(c.name) + '_' + E.date + '.pdf', await makeMatrixPdf(E, c)); else if (b.dataset.act === 'pdfS') await saveFile('Destrezas_' + slug(c.name) + '_' + E.date + '.pdf', await makeSkillsPdf(E, c)); else { if (!window.Chart) throw new Error('Gráficos no disponibles'); await saveFile('Dashboard_' + slug(c.name) + '_' + E.date + '.pdf', await makeDashPdf(E, c)); } }
+      try { if (b.dataset.act === 'pdfM') await saveFile('Matriz_' + slug(c.name) + '_' + E.date + '.pdf', await makeMatrixPdf(E, c)); else if (b.dataset.act === 'pdfS') await saveFile('Destrezas_' + slug(c.name) + '_' + E.date + '.pdf', await makeSkillsPdf(E, c)); else { if (!window.Chart) throw new Error('Gráficos no disponibles'); await saveFile('Dashboard_' + slug(c.name) + '_' + E.date + '.pdf', await makeDashPdf(E, c, b.dataset.ev ? null : ui.cmpId)); } }
       catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); }
       b.disabled = false; b.textContent = old; return; }
     case 'informe': { if (!window.jspdf) return toast('No se cargó la librería de PDF. Revisa tu conexión.'); const E = e(); if (!E) return; return showInforme(E, childOf(E.childId)); }
