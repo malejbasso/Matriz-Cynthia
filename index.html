@@ -178,6 +178,8 @@ details.help ul{margin:8px 0;padding-left:20px}
 .dl h3{margin:16px 0 6px}
 .dl ul{margin:6px 0;padding-left:20px}
 .dm-row{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid var(--line);align-items:center}
+.nt{color:#b00020;font-weight:700}
+.notes-list{list-style:none;padding:0;margin:10px 0 0}.notes-list li{margin:0 0 10px;padding-bottom:10px;border-bottom:1px solid var(--line,#ddd)}
 .dm-note{font-size:.88rem;color:var(--muted);font-style:italic;margin:2px 0 6px}
 .kpi small{font-size:.9rem;font-weight:600;color:var(--muted)}
 #modal .box.wide{max-width:640px}
@@ -458,6 +460,14 @@ const ROWS = [];
 })();
 const cellFun = key => FM[key.split('@')[0]];
 const cellLabel = key => cellFun(key).short;
+/* Notas (comentarios) de una evaluación, numeradas en el orden de la matriz */
+function evNotes(ev) {
+  const out = [];
+  ROWS.forEach(r => r.cells.forEach(cl => { const f = cellFun(cl.key), L = cellLevel(cl.key);
+    [...new Set(cellBehs(f, L).map(b => b.cat))].forEach(cat => { const t = ((ev.comments || {})[f.id + '|' + cat] || '').trim(); if (t) out.push({ n: out.length + 1, key: cl.key, code: cl.code, lvl: r.lvl, f, cat, t }); }); }));
+  return out;
+}
+const noteNums = (NT, key) => NT.filter(x => x.key === key).map(x => x.n);
 
 /* ============ Evaluaciones: cálculo ============ */
 function newEval(childId, src) {
@@ -612,6 +622,8 @@ function showChildForm(c) {
       <label class="f">Nombre completo<input type="text" id="cfName" required value="${esc(c ? c.name : '')}"></label>
       <label class="f">Fecha de nacimiento<input type="date" id="cfDob" max="${today()}" value="${esc(c && c.dob ? c.dob : '')}"></label>
       <label class="f">Diagnóstico<input type="text" id="cfDx" value="${esc(c ? c.dx : '')}"></label>
+      <label class="f">Curso<input type="text" id="cfCurso" value="${esc(c && c.curso ? c.curso : '')}"></label>
+      <label class="f">D. Intelectual<input type="text" id="cfDi" placeholder="Ej.: leve, moderada, sin dato" value="${esc(c && c.di ? c.di : '')}"></label>
     </div>
     <p class="muted small" id="cfAge" style="margin-top:10px"></p>
     <div class="foot-btns" style="margin-top:16px"><span>${c ? '<button type="button" class="btn danger" data-act="delChild" data-cid="' + c.id + '">Eliminar niño o niña</button>' : ''}</span>
@@ -622,7 +634,7 @@ function showChildForm(c) {
   $('#cform').onsubmit = e => {
     e.preventDefault();
     const name = $('#cfName').value.trim(); if (!name) return;
-    const vals = { name, dx: $('#cfDx').value.trim(), dob: $('#cfDob').value || '' };
+    const vals = { name, dx: $('#cfDx').value.trim(), dob: $('#cfDob').value || '', curso: $('#cfCurso').value.trim(), di: $('#cfDi').value.trim() };
     if (c) { Object.assign(c, vals); persist(); ui.formFor = null; toast('Datos guardados'); render(); }
     else { const n = Object.assign({ id: uid(), created: Date.now() }, vals); db.children.push(n); persist(); ui.formFor = null; go({ view: 'child', childId: n.id }); }
   };
@@ -656,6 +668,7 @@ function renderChild() {
       <button class="btn sm" data-ev="${e.id}" data-act="pdfM">PDF matriz</button>
       <button class="btn sm" data-ev="${e.id}" data-act="pdfD">PDF dashboard</button>
       <button class="btn sm" data-ev="${e.id}" data-act="pdfS">PDF destrezas</button>
+      <button class="btn sm" data-ev="${e.id}" data-act="informe">Informe fonoaudiológico</button>
       <button class="btn sm" data-ev="${e.id}" data-act="fromEval">Nueva desde esta</button>
       <button class="btn sm danger" data-ev="${e.id}" data-act="delEval">Eliminar</button></div></td></tr>`; }).join('')}
   </tbody></table></div>` : '<div class="empty"><b>Todavía no hay evaluaciones</b>Usa «Nueva evaluación» para responder el cuestionario por etapas.</div>'}`;
@@ -774,20 +787,21 @@ function funHtml(ev, c, f) {
 function renderRes() {
   const ev = db.evals.find(e => e.id === ui.evalId), c = ev && childOf(ev.childId);
   if (!ev || !c) return go({ view: 'home' });
-  const k = counts(ev), p = progress(ev), sc = scoreInfo(ev), pat = sc.groups.map(g => g.pctDom).join(':');
+  const k = counts(ev), p = progress(ev), sc = scoreInfo(ev), pat = sc.groups.map(g => g.pctDom).join(':'), NT = evNotes(ev);
   let h = `<div class="crumbs"><button class="btn ghost sm" data-act="home">⌂ Inicio</button><button class="btn ghost sm" data-act="backToChild">← ${esc(c.name)}</button></div>
   <header class="head"><div><p class="eyebrow">Matriz de comunicación · aplicada el ${fmtDate(ev.date)}${ev.evaluator ? ' · ' + esc(ev.evaluator) : ''}${c.dob ? ' · Edad: ' + esc(ageText(c.dob, ev.date)) : ''}</p><h1>${esc(c.name)}</h1></div>
   <div class="head-actions"><button class="btn" data-act="guide">Guía</button><button class="btn" data-act="toWiz">Corregir respuestas</button></div></header>`;
   if (p.pct < 100) h += `<div class="banner"><span><b>Faltan ${p.total - p.done} funciones por responder.</b> Mientras tanto aparecen como «No se utiliza».</span><button class="btn sm" data-act="toWiz">Continuar</button></div>`;
-  h += `<div class="res-actions"><button class="btn primary" data-act="pdfM">Descargar matriz (PDF)</button><button class="btn primary" data-act="pdfD">Descargar dashboard (PDF)</button><button class="btn primary" data-act="pdfS">Descargar lista de destrezas (PDF)</button></div>
+  h += `<div class="res-actions"><button class="btn primary" data-act="pdfM">Descargar matriz (PDF)</button><button class="btn primary" data-act="pdfD">Descargar dashboard (PDF)</button><button class="btn primary" data-act="pdfS">Descargar lista de destrezas (PDF)</button><button class="btn primary" data-act="informe">Informe fonoaudiológico (PDF)</button></div>
   <div class="legend">${ST.map((s, i) => '<span><i class="st' + i + '"></i>' + s + '</span>').join('')}</div>
   <div class="mxscroll"><div class="mx">`;
   ROWS.forEach((r, ri) => {
     h += `<button class="lv" data-lvl="${r.lvl}" style="grid-row:${ri + 1}" title="Ver descripción del nivel"><b>${LEVELS[r.lvl].n}</b>${LEVELS[r.lvl].t}</button>`;
-    r.cells.forEach(cl => { const st = stOf(ev, cl.key); h += `<button class="cell st${st}" data-cell="${cl.key}" style="grid-row:${ri + 1};grid-column:${cl.c0 + 1}/${cl.c1 + 2}" title="${esc(cl.code + ' · ' + cellLabel(cl.key) + ' · ' + ST[st])}"><b>${cl.code}</b><span>${esc(cellLabel(cl.key))}</span></button>`; });
+    r.cells.forEach(cl => { const st = stOf(ev, cl.key), nn = noteNums(NT, cl.key); h += `<button class="cell st${st}" data-cell="${cl.key}" style="grid-row:${ri + 1};grid-column:${cl.c0 + 1}/${cl.c1 + 2}" title="${esc(cl.code + ' · ' + cellLabel(cl.key) + ' · ' + ST[st])}"><b>${cl.code}${nn.length ? ' <span class="nt">*' + nn.join(',') + '</span>' : ''}</b><span>${esc(cellLabel(cl.key))}</span></button>`; });
   });
   h += '<div class="lv" style="grid-row:8;background:transparent"></div>' + GROUPS.map(g => `<div class="grp" style="grid-row:8;grid-column:${g.c0 + 1}/${g.c1 + 2}">${g.name}</div>`).join('');
-  h += `</div></div><p class="muted small" style="margin-top:6px">Toca una celda para ver sus conductas y notas, o el nombre de un nivel para ver su descripción.</p>
+  h += `</div></div><p class="muted small" style="margin-top:6px">Toca una celda para ver sus conductas y notas, o el nombre de un nivel para ver su descripción.${NT.length ? ' Las celdas con <span class="nt">*</span> tienen notas.' : ''}</p>
+  ${NT.length ? '<section class="card"><h2>Notas de la evaluación</h2><ol class="notes-list">' + NT.map(n => '<li><b class="nt">*' + n.n + '</b> <b>' + n.code + '</b> · ' + esc(n.f.short) + ' <span class="muted small">(' + LEVELS[n.lvl].n + ' · ' + esc(CATS[n.cat]) + ')</span><div class="muted small">' + nm(n.f.q, c) + '</div><div style="margin-top:4px;white-space:pre-wrap">' + esc(n.t) + '</div></li>').join('') + '</ol></section>' : ''}
   <div class="kpis"><div class="kpi k2"><b>${k[2]}</b><span>celdas dominadas</span></div><div class="kpi k1"><b>${k[1]}</b><span>celdas emergentes</span></div><div class="kpi k3"><b>${k[3]}</b><span>celdas superadas</span></div>
   <div class="kpi"><b>${sc.total} <small>/ 160</small></b><span>puntaje total (${sc.pct}%)</span></div>
   <div class="kpi"><b>${sc.primary ? 'N' + sc.primary : '—'}</b><span>nivel primario: el de mayor % de celdas dominadas</span></div>
@@ -880,7 +894,7 @@ function ageAfterName(doc, c, ev, x, y) {
 function drawMatrixPDF(doc, ev, c) {
   const PW = 297, M = 10, labW = 25, gx = 1.2, gy = 1.6;
   const cw = (PW - 2 * M - labW - gx - 16 * gx) / 17, colX = n => M + labW + gx + (n - 1) * (cw + gx);
-  const rowH = [17, 17, 21, 21, 24, 24, 24];
+  const rowH = [17, 17, 21, 21, 24, 24, 24], NT = evNotes(ev);
   doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(c.name, M, 11); ageAfterName(doc, c, ev, M, 11);
   doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
   doc.text('Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? '    Evaluador/a: ' + ev.evaluator : '') + (c.dx ? '    Diagnóstico: ' + c.dx : ''), M, 16.5);
@@ -898,7 +912,7 @@ function drawMatrixPDF(doc, ev, c) {
       doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.5);
       const lines = fitText(doc, cellLabel(cl.key), w - 1.6, 5);
       const lh = 5 * 0.3528 * 1.15, codeH = 3, total = codeH + lines.length * lh, top = y + (h - total) / 2;
-      doc.text(cl.code, x + w / 2, top + 2.2, { align: 'center' });
+      { const nn = noteNums(NT, cl.key); doc.text(cl.code + (nn.length ? ' *' + nn.join(',') : ''), x + w / 2, top + 2.2, { align: 'center' }); }
       doc.setFont('helvetica', 'normal'); doc.setFontSize(5);
       doc.text(lines, x + w / 2, top + codeH + lh * 0.8, { align: 'center', lineHeightFactor: 1.15 });
     });
@@ -913,11 +927,83 @@ function drawMatrixPDF(doc, ev, c) {
   /* leyenda en el hueco superior derecho */
   const lx = colX(11), ly = y0 + 2; doc.setFontSize(8);
   ST.forEach((s, i) => { doc.setFillColor(...RGB[i]); doc.setDrawColor(95); doc.rect(lx, ly + i * 7, 5, 5, 'FD'); doc.setTextColor(25); doc.setFont('helvetica', 'normal'); doc.text(s, lx + 8, ly + i * 7 + 3.8); });
+  if (NT.length) { doc.setTextColor(25); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.text('* Las celdas marcadas tienen notas del evaluador; se detallan en la página siguiente.', M, 196); }
   doc.setTextColor(120); doc.setFontSize(6.5); doc.text('Réplica de uso interno basada en la Communication Matrix (Charity Rowland). Los resultados son orientativos y no reemplazan el juicio profesional.', M, 203);
 }
 async function makeMatrixPdf(ev, c) {
   const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  drawMatrixPDF(doc, ev, c); return doc.output('arraybuffer');
+  drawMatrixPDF(doc, ev, c); drawNotesPage(doc, ev, c); return doc.output('arraybuffer');
+}
+function drawNotesPage(doc, ev, c) {
+  const NT = evNotes(ev); if (!NT.length) return;
+  const M = 12, W = 297 - 2 * M; let y = 0;
+  const head = () => { doc.addPage('a4', 'landscape'); doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text('Notas de la evaluación · ' + c.name, M, 14);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.text('Fecha de aplicación: ' + fmtDate(ev.date), M, 19.5); y = 28; };
+  head();
+  NT.forEach(n => {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); const ql = doc.splitTextToSize(nm(n.f.q, c), W - 4);
+    doc.setFontSize(9.5); const tl = doc.splitTextToSize(n.t, W - 4), h = 5 + ql.length * 3.6 + tl.length * 4.3 + 4;
+    if (y + h > 198) head();
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(176, 0, 32); doc.text('*' + n.n, M, y); doc.setTextColor(25);
+    doc.text(n.code + ' · ' + n.f.short + '  (' + LEVELS[n.lvl].n + ' · ' + CATS[n.cat] + ')', M + 8, y);
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(110); doc.text(ql, M + 8, y + 4.4); doc.setTextColor(25);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.text(tl, M + 8, y + 4.4 + ql.length * 3.6 + 1.2);
+    y += h;
+  });
+}
+/* ============ Informe fonoaudiológico ============ */
+function informeDraft(ev, c) {
+  const sc = scoreInfo(ev), k = counts(ev), cells = allCells(ev), NT = evNotes(ev), n = firstName(c);
+  const lv = L => LEVELS[L].n + ' (' + LEVELS[L].t.toLowerCase() + ')';
+  let res = 'Se aplicó la Matriz de la Comunicación a ' + c.name + (c.dob ? ', de ' + ageText(c.dob, ev.date) + ',' : '') + ' el ' + fmtDate(ev.date) + '.\n';
+  res += 'Puntaje total: ' + sc.total + ' de 160 (' + sc.pct + '%). Celdas dominadas: ' + k[2] + '; emergentes: ' + k[1] + (k[3] ? '; superadas: ' + k[3] : '') + '.\n';
+  res += 'Nivel primario de comunicación: ' + (sc.primary ? lv(sc.primary) : 'no determinado') + '. Nivel más alto con conductas dominadas: ' + (sc.topStrict ? LEVELS[sc.topStrict].n : 'ninguno') + (sc.topLoose && sc.topLoose !== sc.topStrict ? '; considerando conductas emergentes llega al ' + LEVELS[sc.topLoose].n : '') + '.\n';
+  res += 'Celdas dominadas según la razón para comunicarse: ' + sc.groups.map(g => g.name + ' ' + g.pctDom + '%').join(', ') + '.';
+  if (NT.length) res += '\nObservaciones registradas durante la evaluación:\n' + NT.map(x => '- ' + x.code + ' ' + x.f.short + ' (' + CATS[x.cat] + '): ' + x.t).join('\n');
+  let sug = '';
+  const em = cells.filter(x => x.st === 1).slice(0, 8).map(x => x.code + ' ' + cellLabel(x.key));
+  if (em.length) sug += 'Fortalecer las habilidades que aparecen de forma emergente: ' + em.join('; ') + '.\n';
+  sug += 'Generar oportunidades frecuentes de comunicación en las rutinas diarias (alimentación, juego, aseo), esperando y respondiendo a las conductas comunicativas de ' + n + '.\n';
+  if (sc.primary && sc.primary < 7) sug += 'Favorecer el avance hacia el ' + LEVELS[sc.primary + 1].n + ' (' + LEVELS[sc.primary + 1].t.toLowerCase() + ').\n';
+  sug += 'Coordinar con la familia y el equipo de aula el uso consistente de las estrategias.';
+  const dxf = 'Perfil comunicativo ubicado principalmente en el ' + (sc.primary ? lv(sc.primary) : 'nivel por determinar') + ' de la Matriz de la Comunicación. [Completar diagnóstico fonoaudiológico]';
+  return { res, sug, dxf };
+}
+async function makeInformePdf(ev, c) {
+  const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const M = 20, W = 170, inf = ev.informe || {}; let y = 24;
+  const chk = h => { if (y + h > 275) { doc.addPage('a4', 'portrait'); y = 22; } };
+  doc.setTextColor(25); doc.setFont('helvetica', 'bold'); doc.setFontSize(17); doc.text('Informe Fonoaudiológico', 105, y, { align: 'center' }); y += 13;
+  const fields = [['Nombre Estudiante', c.name], ['Curso', c.curso], ['Fecha de nacimiento', c.dob ? fmtDate(c.dob) : ''], ['Edad', c.dob ? ageText(c.dob, ev.date) : ''], ['Diagnóstico Médico', c.dx], ['D. Intelectual', c.di], ['Prueba Aplicada', 'Matriz de la comunicación'], ['Fecha evaluación', fmtDate(ev.date)]];
+  doc.setFontSize(10.5);
+  fields.forEach(([l, v]) => { doc.setFont('helvetica', 'normal'); const ls = doc.splitTextToSize(v || '', W - 50); chk(8);
+    doc.setFont('helvetica', 'bold'); doc.text(l + ':', M, y); doc.setFont('helvetica', 'normal'); doc.text(ls, M + 50, y); y += Math.max(1, ls.length) * 5 + 1.5; });
+  const sec = (title, text) => { y += 5; chk(16); doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.text(title, M, y); y += 6.5; doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);
+    String(text || '').split('\n').forEach(par => { doc.splitTextToSize(par || ' ', W).forEach(l => { chk(6); doc.text(l, M, y); y += 5.2; }); y += 1.2; }); };
+  sec('Resultados de la Prueba', inf.res); sec('Sugerencias', inf.sug); sec('Diagnóstico Fonoaudiológico', inf.dxf);
+  chk(34); y += 22; doc.setDrawColor(60); doc.setLineWidth(0.2); doc.line(M, y, M + 75, y); y += 5;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); doc.text('Fonoaudióloga' + (ev.evaluator ? ' ' + ev.evaluator : ''), M, y);
+  doc.addPage('a4', 'landscape'); drawMatrixPDF(doc, ev, c); drawNotesPage(doc, ev, c);
+  return doc.output('arraybuffer');
+}
+async function showInforme(ev, c) {
+  if (!ev.informe) { ev.informe = informeDraft(ev, c); ev.updated = Date.now(); persist(); }
+  for (;;) {
+    const inf = ev.informe;
+    const p = modal(`<h2>Informe fonoaudiológico</h2><p class="muted small">Es un borrador a partir de los resultados: edítalo antes de descargar. Los cambios se guardan solos. La matriz y las notas van como anexo.</p>
+      <div class="grid2"><label class="f">Curso<input type="text" id="ifCurso" value="${esc(c.curso || '')}"></label><label class="f">D. Intelectual<input type="text" id="ifDi" value="${esc(c.di || '')}"></label><label class="f">Fonoaudióloga<input type="text" id="ifEv" value="${esc(ev.evaluator || '')}"></label></div>
+      <label class="f" style="margin-top:10px">Resultados de la prueba<textarea id="ifRes" rows="9">${esc(inf.res || '')}</textarea></label>
+      <label class="f" style="margin-top:10px">Sugerencias<textarea id="ifSug" rows="6">${esc(inf.sug || '')}</textarea></label>
+      <label class="f" style="margin-top:10px">Diagnóstico fonoaudiológico<textarea id="ifDxf" rows="4">${esc(inf.dxf || '')}</textarea></label>
+      <div class="acts"><button class="btn" data-v="regen">Regenerar borrador</button><button class="btn" data-v="no">Cerrar</button><button class="btn primary" data-v="pdf">Descargar PDF</button></div>`, true);
+    const bind = (id, fn) => { const el = $('#' + id); if (el) el.oninput = () => { fn(el.value); ev.updated = Date.now(); clearTimeout(txT); txT = setTimeout(persist, 400); }; };
+    bind('ifCurso', v => c.curso = v.trim()); bind('ifDi', v => c.di = v.trim()); bind('ifEv', v => ev.evaluator = v.trim());
+    bind('ifRes', v => inf.res = v); bind('ifSug', v => inf.sug = v); bind('ifDxf', v => inf.dxf = v);
+    const r = await p;
+    if (r === 'regen') { if (await ask('Se reemplazarán los tres textos por un borrador nuevo. ¿Continuar?', 'Regenerar')) { ev.informe = informeDraft(ev, c); ev.updated = Date.now(); persist(); } continue; }
+    if (r === 'pdf') { try { await saveFile('Informe_fonoaudiologico_' + slug(c.name) + '_' + ev.date + '.pdf', await makeInformePdf(ev, c)); } catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); } }
+    persist(); render(); return;
+  }
 }
 
 /* ============ PDF del dashboard (gráficos con Chart.js) ============ */
@@ -1123,6 +1209,7 @@ document.addEventListener('click', async ev => {
       try { if (b.dataset.act === 'pdfM') await saveFile('Matriz_' + slug(c.name) + '_' + E.date + '.pdf', await makeMatrixPdf(E, c)); else if (b.dataset.act === 'pdfS') await saveFile('Destrezas_' + slug(c.name) + '_' + E.date + '.pdf', await makeSkillsPdf(E, c)); else { if (!window.Chart) throw new Error('Gráficos no disponibles'); await saveFile('Dashboard_' + slug(c.name) + '_' + E.date + '.pdf', await makeDashPdf(E, c)); } }
       catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); }
       b.disabled = false; b.textContent = old; return; }
+    case 'informe': { if (!window.jspdf) return toast('No se cargó la librería de PDF. Revisa tu conexión.'); const E = e(); if (!E) return; return showInforme(E, childOf(E.childId)); }
     case 'guide': return showGuide();
     case 'connect': return connectFolder(false);
     case 'changeFolder': return connectFolder(true);
