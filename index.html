@@ -1142,22 +1142,97 @@ async function makeInformePdf(ev, c) {
   doc.addPage('a4', 'landscape'); drawMatrixPDF(doc, ev, c); drawNotesPage(doc, ev, c);
   return doc.output('arraybuffer');
 }
+/* ============ Informe fonoaudiológico en Word (.docx, sin librerías) ============ */
+const CRC_T = (() => { const t = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function zipStore(files) {
+  const enc = new TextEncoder(), parts = [], cen = []; let off = 0;
+  files.forEach(f => {
+    const nm = enc.encode(f.name), data = enc.encode(f.text), crc = crc32(data);
+    const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true); lh.setUint16(10, 0, true); lh.setUint16(12, 0x21, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nm.length, true); lh.setUint16(28, 0, true);
+    const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true); ch.setUint16(12, 0, true); ch.setUint16(14, 0x21, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nm.length, true); ch.setUint32(42, off, true);
+    parts.push(new Uint8Array(lh.buffer), nm, data); cen.push(new Uint8Array(ch.buffer), nm); off += 30 + nm.length + data.length;
+  });
+  const cdSize = cen.reduce((a, b) => a + b.length, 0), end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, cdSize, true); end.setUint32(16, off, true);
+  const all = parts.concat(cen, [new Uint8Array(end.buffer)]), out = new Uint8Array(off + cdSize + 22); let p = 0; all.forEach(a => { out.set(a, p); p += a.length; });
+  return out.buffer;
+}
+const xe = t => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const wr = (t, o = {}) => '<w:r><w:rPr>' + (o.b ? '<w:b/>' : '') + (o.i ? '<w:i/>' : '') + (o.color ? '<w:color w:val="' + o.color + '"/>' : '') + (o.sz ? '<w:sz w:val="' + o.sz + '"/><w:szCs w:val="' + o.sz + '"/>' : '') + (o.fill ? '<w:shd w:val="clear" w:color="auto" w:fill="' + o.fill + '"/>' : '') + '</w:rPr><w:t xml:space="preserve">' + xe(t) + '</w:t></w:r>';
+const wp = (runs, o = {}) => '<w:p><w:pPr>' + (o.keep ? '<w:keepNext/>' : '') + '<w:spacing w:before="' + (o.before || 0) + '" w:after="' + (o.after == null ? 80 : o.after) + '"/>' + (o.jc ? '<w:jc w:val="' + o.jc + '"/>' : '') + (o.sect || '') + '</w:pPr>' + (runs || '') + '</w:p>';
+function makeInformeDocx(ev, c) {
+  const inf = ev.informe || {}, NT = evNotes(ev), HEX = ['FFFFFF', 'FDE37F', 'FBA97D', 'CFCFCF'];
+  let b = '';
+  b += wp(wr('Informe Fonoaudiológico', { b: 1, sz: 32 }), { jc: 'center', after: 240 });
+  [['Nombre Estudiante', c.name], ['Curso', c.curso], ['Fecha de nacimiento', c.dob ? fmtDate(c.dob) : ''], ['Edad', c.dob ? ageText(c.dob, ev.date) : ''], ['Diagnóstico Médico', c.dx], ['D. Intelectual', c.di],
+    ['Prueba Aplicada', 'Matriz de la comunicación'], ['Fecha evaluación', fmtDate(ev.date)]].forEach(f => { b += wp(wr(f[0] + ': ', { b: 1 }) + wr(f[1] || ''), { after: 60 }); });
+  [['Resultados de la Prueba', inf.res], ['Sugerencias', inf.sug], ['Diagnóstico Fonoaudiológico', inf.dxf]].forEach(sec => {
+    b += wp(wr(sec[0], { b: 1, sz: 24 }), { before: 240, after: 100, keep: 1 });
+    String(sec[1] || '').split('\n').forEach(par => { b += wp(par ? wr(par) : '', { after: 80 }); });
+  });
+  b += wp('', { before: 700, after: 0 }) + wp(wr('______________________________'), { after: 20 });
+  const secP = '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1417" w:left="1417" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr>';
+  b += wp(wr('Fonoaudióloga' + (ev.evaluator ? ' ' + ev.evaluator : ''), { b: 1 }), { after: 0, sect: secP });
+  /* Anexo: matriz */
+  b += wp(wr('Anexo: Matriz de la comunicación', { b: 1, sz: 28 }), { after: 40 });
+  b += wp(wr(c.name + (c.dob ? ' · Edad: ' + ageText(c.dob, ev.date) : '') + ' · Fecha de aplicación: ' + fmtDate(ev.date) + (ev.evaluator ? ' · Evaluador/a: ' + ev.evaluator : ''), { sz: 18, color: '555555' }), { after: 120 });
+  const LW = 1500, CWd = Math.floor((15704 - LW) / 17), bd = col => '<w:tcBorders>' + ['top', 'left', 'bottom', 'right'].map(x => '<w:' + x + ' w:val="single" w:sz="4" w:space="0" w:color="' + col + '"/>').join('') + '</w:tcBorders>';
+  const tc = (w, span, fill, inner, border) => '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' + (span > 1 ? '<w:gridSpan w:val="' + span + '"/>' : '') + (border ? bd(border) : '') + (fill ? '<w:shd w:val="clear" w:color="auto" w:fill="' + fill + '"/>' : '') + '<w:vAlign w:val="center"/></w:tcPr>' + (inner || wp('', { after: 0 })) + '</w:tc>';
+  let tbl = '<w:tbl><w:tblPr><w:tblW w:w="' + (LW + 17 * CWd) + '" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:left w:w="30" w:type="dxa"/><w:right w:w="30" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid><w:gridCol w:w="' + LW + '"/>' + ('<w:gridCol w:w="' + CWd + '"/>').repeat(17) + '</w:tblGrid>';
+  ROWS.forEach(r => {
+    tbl += '<w:tr><w:trPr><w:cantSplit/><w:trHeight w:val="980" w:hRule="atLeast"/></w:trPr>' + tc(LW, 1, '707777', wp(wr('Nivel ' + r.lvl, { b: 1, sz: 15, color: 'FFFFFF' }), { jc: 'center', after: 0 }) + wp(wr(LEVELS[r.lvl].t, { sz: 11, color: 'FFFFFF' }), { jc: 'center', after: 0 }), '6B7474');
+    let col = 1;
+    while (col <= 17) {
+      const cl = r.cells.find(x => x.c0 === col);
+      if (!cl) { tbl += tc(CWd, 1, null, null, null); col++; continue; }
+      const span = cl.c1 - cl.c0 + 1, st = stOf(ev, cl.key), nn = noteNums(NT, cl.key);
+      tbl += tc(CWd * span, span, HEX[st], wp(wr(cl.code + (nn.length ? ' *' + nn.join(',') : ''), { b: 1, sz: 14, color: '1A1A1A' }), { jc: 'center', after: 0 }) + wp(wr(cellLabel(cl.key), { sz: 11, color: '1A1A1A' }), { jc: 'center', after: 0 }), '6B7474');
+      col = cl.c1 + 1;
+    }
+    tbl += '</w:tr>';
+  });
+  tbl += '<w:tr><w:trPr><w:trHeight w:val="360" w:hRule="atLeast"/></w:trPr>' + tc(LW, 1, '707777', null, '6B7474') + GROUPS.map(g => tc(CWd * (g.c1 - g.c0 + 1), g.c1 - g.c0 + 1, '707777', wp(wr(g.name, { b: 1, sz: 16, color: 'FFFFFF' }), { jc: 'center', after: 0 }), '6B7474')).join('') + '</w:tr></w:tbl>';
+  b += tbl;
+  b += wp(wr('Leyenda: ', { b: 1, sz: 16 }) + ST.map((n, i) => wr('  ' + n + '  ', { sz: 16, fill: HEX[i] }) + wr('  ', { sz: 16 })).join(''), { before: 120, after: 60 });
+  if (NT.length) {
+    b += wp(wr('Notas de la evaluación', { b: 1, sz: 24 }), { before: 200, after: 80, keep: 1 });
+    NT.forEach(n => {
+      b += wp(wr('*' + n.n + '  ', { b: 1, color: 'B00020' }) + wr(n.code + ' · ' + n.f.short + '  (' + LEVELS[n.lvl].n + ' · ' + CATS[n.cat] + ')', { b: 1 }), { after: 0, keep: 1 });
+      b += wp(wr(nm(n.f.q, c), { i: 1, sz: 17, color: '666666' }), { after: 0, keep: 1 });
+      String(n.t).split('\n').forEach((par, i, arr) => { b += wp(wr(par), { after: i === arr.length - 1 ? 120 : 0 }); });
+    });
+  }
+  b += wp(wr('Réplica de uso interno basada en la Communication Matrix (Charity Rowland). Los resultados son orientativos y no reemplazan el juicio profesional.', { sz: 14, color: '777777' }), { before: 160, after: 0 });
+  const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"';
+  const doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ' + W + '><w:body>' + b + '<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="567" w:right="567" w:bottom="567" w:left="567" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>';
+  const R = 'http://schemas.openxmlformats.org/package/2006/relationships', H = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  return zipStore([
+    { name: '[Content_Types].xml', text: H + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>' },
+    { name: '_rels/.rels', text: H + '<Relationships xmlns="' + R + '"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>' },
+    { name: 'word/_rels/document.xml.rels', text: H + '<Relationships xmlns="' + R + '"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+    { name: 'word/styles.xml', text: H + '<w:styles ' + W + '><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="es-CL"/></w:rPr></w:rPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style></w:styles>' },
+    { name: 'word/document.xml', text: doc }]);
+}
 async function showInforme(ev, c) {
   if (!ev.informe) { ev.informe = informeDraft(ev, c); ev.updated = Date.now(); persist(); }
   for (;;) {
     const inf = ev.informe;
-    const p = modal(`<h2>Informe fonoaudiológico</h2><p class="muted small">Es un borrador a partir de los resultados: edítalo antes de descargar. Los cambios se guardan solos. La matriz y las notas van como anexo.</p>
+    const p = modal(`<h2>Informe fonoaudiológico</h2><p class="muted small">Es un borrador a partir de los resultados: edítalo antes de descargar. Los cambios se guardan solos. La matriz y las notas van como anexo, en PDF y en Word.</p>
       <div class="grid2"><label class="f">Curso<input type="text" id="ifCurso" value="${esc(c.curso || '')}"></label><label class="f">D. Intelectual<input type="text" id="ifDi" value="${esc(c.di || '')}"></label><label class="f">Fonoaudióloga<input type="text" id="ifEv" value="${esc(ev.evaluator || '')}"></label></div>
       <label class="f" style="margin-top:10px">Resultados de la prueba<textarea id="ifRes" rows="9">${esc(inf.res || '')}</textarea></label>
       <label class="f" style="margin-top:10px">Sugerencias<textarea id="ifSug" rows="6">${esc(inf.sug || '')}</textarea></label>
       <label class="f" style="margin-top:10px">Diagnóstico fonoaudiológico<textarea id="ifDxf" rows="4">${esc(inf.dxf || '')}</textarea></label>
-      <div class="acts"><button class="btn" data-v="regen">Regenerar borrador</button><button class="btn" data-v="no">Cerrar</button><button class="btn primary" data-v="pdf">Descargar PDF</button></div>`, true);
+      <div class="acts"><button class="btn" data-v="regen">Regenerar borrador</button><button class="btn" data-v="no">Cerrar</button><button class="btn" data-v="docx">Descargar Word</button><button class="btn primary" data-v="pdf">Descargar PDF</button></div>`, true);
     const bind = (id, fn) => { const el = $('#' + id); if (el) el.oninput = () => { fn(el.value); ev.updated = Date.now(); clearTimeout(txT); txT = setTimeout(persist, 400); }; };
     bind('ifCurso', v => c.curso = v.trim()); bind('ifDi', v => c.di = v.trim()); bind('ifEv', v => ev.evaluator = v.trim());
     bind('ifRes', v => inf.res = v); bind('ifSug', v => inf.sug = v); bind('ifDxf', v => inf.dxf = v);
     const r = await p;
     if (r === 'regen') { if (await ask('Se reemplazarán los tres textos por un borrador nuevo. ¿Continuar?', 'Regenerar')) { ev.informe = informeDraft(ev, c); ev.updated = Date.now(); persist(); } continue; }
-    if (r === 'pdf') { try { await saveFile('Informe_fonoaudiologico_' + slug(c.name) + '_' + ev.date + '.pdf', await makeInformePdf(ev, c)); } catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); } }
+    if (r === 'docx') { try { await saveFile('Informe_fonoaudiologico_' + slug(c.name) + '_' + ev.date + '.docx', makeInformeDocx(ev, c)); } catch (err) { console.error(err); toast('No se pudo generar el Word: ' + err.message); } }
+    if (r === 'pdf') { if (!window.jspdf) toast('No se cargó la librería de PDF. Revisa tu conexión.'); else try { await saveFile('Informe_fonoaudiologico_' + slug(c.name) + '_' + ev.date + '.pdf', await makeInformePdf(ev, c)); } catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); } }
     persist(); render(); return;
   }
 }
@@ -1441,7 +1516,7 @@ document.addEventListener('click', async ev => {
       try { if (b.dataset.act === 'pdfM') await saveFile('Matriz_' + slug(c.name) + '_' + E.date + '.pdf', await makeMatrixPdf(E, c)); else if (b.dataset.act === 'pdfS') await saveFile('Destrezas_' + slug(c.name) + '_' + E.date + '.pdf', await makeSkillsPdf(E, c)); else { if (!window.Chart) throw new Error('Gráficos no disponibles'); await saveFile('Dashboard_' + slug(c.name) + '_' + E.date + '.pdf', await makeDashPdf(E, c, b.dataset.ev ? null : ui.cmpId)); } }
       catch (err) { console.error(err); toast('No se pudo generar el PDF: ' + err.message); }
       b.disabled = false; b.textContent = old; return; }
-    case 'informe': { if (!window.jspdf) return toast('No se cargó la librería de PDF. Revisa tu conexión.'); const E = e(); if (!E) return; return showInforme(E, childOf(E.childId)); }
+    case 'informe': { const E = e(); if (!E) return; return showInforme(E, childOf(E.childId)); }
     case 'guide': return showGuide();
     case 'connect': return connectFolder(false);
     case 'changeFolder': return connectFolder(true);
